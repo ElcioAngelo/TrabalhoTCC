@@ -1,6 +1,6 @@
 # TrabalhoTCC
 
-##### Atualização 14/03:
+#### Atualização 14/03:
 
 * Configuração do banco de dados (conexão)
 
@@ -288,3 +288,22 @@ create table stock_moviment (
 * Terminar CRUDS
 * Implementar Autenticação JWT
 * adcionar funções para administradores
+
+## Instalação do projeto:
+
+```
+    #clone o repositorio.
+    git clone https://github.com/ElcioAngelo/TrabalhoTCC.git
+    #mudando para a pasta salva do respositorio
+    cd TrabalhoTCC
+    #mudando para a pasta de execucao principal
+    cd cmd 
+    #rodando o servidor
+    go run main.go
+```
+
+## Tecnologias usadas
+
+* Golang 
+* Docker
+
