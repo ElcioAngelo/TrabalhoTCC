@@ -6,3 +6,4 @@ type ItemModel struct {
 	ProductID int 	`json:"product_id"`
 	UserID	int		`json:"user_id"`
 }
+

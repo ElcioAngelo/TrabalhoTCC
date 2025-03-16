@@ -1,4 +1,9 @@
-# TrabalhoTCC
+# Trabalho TCC Back End
+
+Para melhor visualização do trabalho recomendo que instale essas extensões do VSCODE:
+
+* Better Comments (Aaron Bond)
+* Pacote de extensão "Golang" (aldijav) 
 
 #### Atualização 14/03:
 
@@ -16,6 +21,12 @@
 * pasta CMD (arquivo principal)
 
 * Implementando arquivos Docker (Banco de dados, Aplicativo principal)
+
+#### Atualização 16/03:
+
+* Proteção contra SQL injections.
+* Senhas são criptografadas (Usando o Bcrypt)
+* 
 
 ## Banco de dados:
 

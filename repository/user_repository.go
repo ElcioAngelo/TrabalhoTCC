@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.comElcioAngelo/TrabalhoTCC.git/model"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserRepository struct {
@@ -17,36 +18,61 @@ func NewUserRepository(connection *sql.DB) UserRepository {
 	}
 }
 
-func (pr *UserRepository) GetUser() (model.User, error) {
+func (ur *UserRepository) GetUser(user_id string) (model.User, error) {
 
-	query := `SELECT id,name,email,cellphone_number,shipping_adress,payment_address from "users" LIMIT 1`
-	rows, err := pr.connection.Query(query)
-	if err != nil {
-		fmt.Println(err)
-		return model.User{}, err
-	}
+	query := 
+	`
+	select u.name, u.email, u.cellphone_number, u.shipping_adress, u.payment_address from users u 
+	where u.id = $1;
+	`
 
 	var user model.User
 
-	for rows.Next() {
-		err = rows.Scan(
-			&user.ID,
-			&user.Name,
-			&user.Email,
-			&user.CellphoneNumber,
-			&user.PaymentAddress,
-			&user.ShippingAddress,
-		)
-			if err != nil {
-				fmt.Println(err)
-				return model.User{}, err
-			}else{
-				return model.User{}, fmt.Errorf("no user found")
-			}
+	err := ur.connection.QueryRow(query, user_id).Scan(
+		&user.Name,
+		&user.Email,
+		&user.CellphoneNumber,
+		&user.ShippingAddress,
+		&user.PaymentAddress,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return user, fmt.Errorf("user not found")
+		}
+		return user, err 
 	}
-	rows.Close()
 	return user, nil
 }
+
+func (ur *UserRepository) CreateUser(user model.User) (error) {
+	
+	query := `
+	Insert into "users" (name,
+	email,password,cellphone_number,shipping_adress,payment_address)
+	values ($1, $2, $3, $4, $5, $6)
+	`
+
+	// * Gera o HASH da senha 
+	EncryptedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password),
+	bcrypt.DefaultCost)
+	if err != nil {
+		panic(err)
+	}
+
+	result,err := ur.connection.Exec(query,user.Name,user.Email, EncryptedPassword,user.CellphoneNumber,
+		user.ShippingAddress,user.PaymentAddress)
+	if err != nil {
+		panic(err)
+	}
+
+	rowsAffected, _ := result.RowsAffected()
+	fmt.Printf(`Rows affected: %d`,rowsAffected)
+
+	return err
+}
+
+
+
 
 
 

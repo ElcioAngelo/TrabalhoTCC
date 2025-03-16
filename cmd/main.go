@@ -28,17 +28,8 @@ func main() {
 		})
 	})
 
-
-	server.GET("/user",UserController.GetUser)
+	server.GET("/user/:user_id",UserController.GetUser)
+	server.POST("/createUser", UserController.CreateUser)
 	
-
-
-
-
-
-
-
-
 	server.Run(":8000")
-	
 }

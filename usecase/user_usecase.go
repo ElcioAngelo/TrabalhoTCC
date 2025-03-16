@@ -15,8 +15,12 @@ func NewUserRepository(repo repository.UserRepository) UserUseCase {
 	}
 } 
 
-func (su *UserUseCase) GetUser() (model.User,error) {
-	return su.repository.GetUser()
+func (su *UserUseCase) GetUser(user_id string) (model.User,error) {
+	return su.repository.GetUser(user_id)
+}
+
+func (su *UserUseCase) CreateUser(user model.User) (error) {
+	return su.repository.CreateUser(user)
 }
 
 
