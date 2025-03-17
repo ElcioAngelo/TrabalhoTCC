@@ -20,7 +20,8 @@ func NewProductRepository(connection *sql.DB) ProductRepository {
 
 func (pr *ProductRepository) GetProducts() ([]model.Product, error) {
 
-	query := `SELECT id, product_name, price FROM "Product"`
+	query := `SELECT * FROM products;`
+
 	rows, err := pr.connection.Query(query)
 	if err != nil {
 		fmt.Println(err)
@@ -34,8 +35,11 @@ func (pr *ProductRepository) GetProducts() ([]model.Product, error) {
 		err = rows.Scan(
 			&productObj.ID,
 			&productObj.Name,
-			&productObj.Price)
-
+			&productObj.Price,
+			&productObj.Description,
+			&productObj.CategoryID,
+			&productObj.BrandID,
+		)
 		if err != nil {
 			fmt.Println(err)
 			return []model.Product{}, err
@@ -49,27 +53,24 @@ func (pr *ProductRepository) GetProducts() ([]model.Product, error) {
 	return productList, nil
 }
 
-func (pr *ProductRepository) CreateProduct(product model.Product) (int, error) {
+func (pr *ProductRepository) CreateProduct(product model.Product) (error) {
 
-	var id int
-	query, err := pr.connection.Prepare("INSERT INTO product" +
-		"(product_name, price)" +
-		" VALUES ($1, $2) RETURNING id")
-	if err != nil {
-		fmt.Println(err)
-		return 0, err
-	}
-
+	query := `insert into Products values
+	($1,$2,$3,$4,$5)`
 	
-
-	err = query.QueryRow(product.Name, product.Price).Scan(&id)
-	if err != nil {
-		fmt.Println(err)
-		return 0, err
+	
+	result, err := pr.connection.Exec(query,product.Name,
+		product.Price,
+		product.Description,
+		product.CategoryID,
+		product.BrandID)	
+ 	if err != nil {
+		panic(err)
 	}
 
-	query.Close()
-	return id, nil
+	affectedRows, _ := result.RowsAffected()
+	fmt.Printf("Rows affeceted: %d", affectedRows)
+	return err 
 }
 
 func (pr *ProductRepository) GetProductById(id_product int) (*model.Product, error) {

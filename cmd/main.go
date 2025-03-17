@@ -18,9 +18,29 @@ func main() {
 		panic(err)
 	}
 
+	// * Usuários ################################################################################################
 	UserRepository := repository.NewUserRepository(dbConnection)
 	UserUsecase := usecase.NewUserRepository(UserRepository)
 	UserController := controller.NewUserController(UserUsecase)
+
+
+	// * Produtos ################################################################################################
+	ProductRepository := repository.NewProductRepository(dbConnection)
+	ProductUsecase := usecase.NewProductUseCase(ProductRepository)
+	ProductController := controller.NewProductController(ProductUsecase)
+
+	// * Requisições GET ################################################################################################
+	server.GET("/user/:user_id",UserController.GetUser)
+	server.GET("/products", ProductController.GetProducts)
+	
+	// * Requisições POST ################################################################################################
+	server.POST("/createUser", UserController.CreateUser)
+	
+	// * Requisições PATCH ################################################################################################
+
+	
+	// * Requisições DELETE ################################################################################################
+
 
 	server.GET("/ping", func(ctx *gin.Context) {
 		ctx.JSON(200,gin.H{
@@ -28,8 +48,5 @@ func main() {
 		})
 	})
 
-	server.GET("/user/:user_id",UserController.GetUser)
-	server.POST("/createUser", UserController.CreateUser)
-	
 	server.Run(":8000")
 }

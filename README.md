@@ -26,7 +26,15 @@ Para melhor visualização do trabalho recomendo que instale essas extensões do
 
 * Proteção contra SQL injections.
 * Senhas são criptografadas (Usando o Bcrypt)
-* 
+* Deixando comentários para o código ficar mais legivel (main, product_controller, product_repo,user_repo)
+
+
+## Implementações futuras:
+
+* Terminar CRUDS
+* Implementar Autenticação JWT
+* adcionar funções para administradores
+* terminar Patch do usuário.
 
 ## Banco de dados:
 
@@ -292,13 +300,6 @@ create table stock_moviment (
 /*########## FIM DAS TABELAS DO ESTOQUE  ####################################################################################################*/
 
 ```
-
-
-## Implementações futuras:
-
-* Terminar CRUDS
-* Implementar Autenticação JWT
-* adcionar funções para administradores
 
 ## Instalação do projeto:
 
