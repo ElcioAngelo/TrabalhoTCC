@@ -100,3 +100,19 @@ func (pr *ProductRepository) GetProductById(id_product int) (*model.Product, err
 	query.Close()
 	return &produto, nil
 }
+
+func joinStrings(arr []string, seperator string) string {
+	return fmt.Sprintf("%s", arr)
+}
+
+func (pr *ProductRepository) EditProduct(fields []string, values []interface{},id string) (error) {
+	query := fmt.Sprintf("update Product set %s where id = ?", joinStrings(fields, ", "))
+	values = append(values, id)
+
+	_, err := pr.connection.Exec(query, values...)
+	if err != nil {
+		panic(err)
+	}
+	return err
+}
+

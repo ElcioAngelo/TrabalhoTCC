@@ -19,15 +19,13 @@ func (pu *ProductUseCase) GetProducts() ([]model.Product, error) {
 	return pu.repository.GetProducts()
 }
 
-func (pu *ProductUseCase) CreateProduct(product model.Product) (model.Product, error) {
-	productId, err := pu.repository.CreateProduct(product)
+func (pu *ProductUseCase) CreateProduct(product model.Product) (error) {
+	err := pu.repository.CreateProduct(product)
 	if (err != nil) {
-		return model.Product{}, err
+		panic(err)
 	}
 
-	product.ID = productId
-
-	return product, nil
+	return err
 }
 
 func (pu *ProductUseCase) GetProductById(id_product int) (*model.Product, error) {
@@ -39,5 +37,15 @@ func (pu *ProductUseCase) GetProductById(id_product int) (*model.Product, error)
 
 	return product, nil
 }
+
+func (pu *ProductUseCase) EditProduct(fields []string, values []interface{},id string) (error) {
+
+	err := pu.repository.EditProduct(fields,values,id)
+	if err != nil {
+		panic(err)
+	}
+	return err
+}
+
 
 

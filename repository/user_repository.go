@@ -83,31 +83,24 @@ type userEdit struct {
 	PaymentAddress  *string    `json:"payment_address"`
 }
 
-func (ur *UserRepository) EditUser(userEdit) (error){
+func (ur *UserRepository) EditUser(user userEdit) (error){
 	//TODO: Terminar essa parte.
-	// query := `
-	// Insert into "users" (name,
-	// email,password,cellphone_number,shipping_adress,payment_address)
-	// values ($1, $2, $3, $4, $5, $6)
-	// `
+	query := `
+	Insert into "users" (name,
+	email,password,cellphone_number,shipping_adress,payment_address)
+	values ($1, $2, $3, $4, $5, $6)
+	`
 
-	// // * Gera o HASH da senha 
-	// EncryptedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password),
-	// bcrypt.DefaultCost)
-	// if err != nil {
-	// 	panic(err)
-	// }
+	result,err := ur.connection.Exec(query,user.Name,user.Email, user.Password,user.CellphoneNumber,
+		user.ShippingAddress,user.PaymentAddress)
+	if err != nil {
+		panic(err)
+	}
 
-	// result,err := ur.connection.Exec(query,user.Name,user.Email, EncryptedPassword,user.CellphoneNumber,
-	// 	user.ShippingAddress,user.PaymentAddress)
-	// if err != nil {
-	// 	panic(err)
-	// }
+	rowsAffected, _ := result.RowsAffected()
+	fmt.Printf(`Rows affected: %d`,rowsAffected)
 
-	// rowsAffected, _ := result.RowsAffected()
-	// fmt.Printf(`Rows affected: %d`,rowsAffected)
-
-	// return err
+	return err
 }
 
 
