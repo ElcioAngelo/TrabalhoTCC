@@ -3,6 +3,7 @@ package repository
 import (
 	"database/sql"
 	"fmt"
+	"strings"
 
 	"github.comElcioAngelo/TrabalhoTCC.git/model"
 )
@@ -55,7 +56,7 @@ func (pr *ProductRepository) GetProducts() ([]model.Product, error) {
 
 func (pr *ProductRepository) CreateProduct(product model.Product) (error) {
 
-	query := `insert into Products values
+	query := `insert into Products (name,price,description,category_id,brand_id) values
 	($1,$2,$3,$4,$5)`
 	
 	
@@ -102,17 +103,37 @@ func (pr *ProductRepository) GetProductById(id_product int) (*model.Product, err
 }
 
 func joinStrings(arr []string, seperator string) string {
-	return fmt.Sprintf("%s", arr)
+	return strings.Join(arr, seperator)
 }
 
 func (pr *ProductRepository) EditProduct(fields []string, values []interface{},id string) (error) {
-	query := fmt.Sprintf("update Product set %s where id = ?", joinStrings(fields, ", "))
-	values = append(values, id)
+	
+	var setClauses []string
+	
+	for _, field := range fields {
+		setClauses = append(setClauses, fmt.Sprintf("%s = %s", setClauses,field))
+	}
 
-	_, err := pr.connection.Exec(query, values...)
+	setClause := joinStrings(setClauses, ", ")
+
+	query := fmt.Sprintf("update product set %s where id = %s", setClause, id)
+	
+	values = append(values,id)
+
+	_, err := pr.connection.Exec(query,values...); if err != nil {
+		return fmt.Errorf("error while updating product: %v", err)
+	}
+	return nil
+}
+
+func (pr *ProductRepository) RemoveProduct(id int) (error) {
+	query := 
+	`
+		delete from products where id = $1
+	`
+	_, err := pr.connection.Exec(query,id); 
 	if err != nil {
 		panic(err)
 	}
 	return err
 }
-

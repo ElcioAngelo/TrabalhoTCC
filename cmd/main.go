@@ -19,27 +19,40 @@ func main() {
 	}
 
 	// * Usuários ################################################################################################
+	
 	UserRepository := repository.NewUserRepository(dbConnection)
 	UserUsecase := usecase.NewUserRepository(UserRepository)
 	UserController := controller.NewUserController(UserUsecase)
 
 
 	// * Produtos ################################################################################################
+	
 	ProductRepository := repository.NewProductRepository(dbConnection)
 	ProductUsecase := usecase.NewProductUseCase(ProductRepository)
 	ProductController := controller.NewProductController(ProductUsecase)
 
 	// * Requisições GET ################################################################################################
+	
 	server.GET("/user/:user_id",UserController.GetUser)
 	server.GET("/products", ProductController.GetProducts)
 	
 	// * Requisições POST ################################################################################################
+	
 	server.POST("/createUser", UserController.CreateUser)
+	server.POST("/createProduct",ProductController.CreateProduct)
 	
 	// * Requisições PATCH ################################################################################################
+	
+	// !! Preciso de ajuda nas requisições de PATCH Para edição.
 
 	
 	// * Requisições DELETE ################################################################################################
+
+	server.DELETE("/deleteProduct/:product_id",ProductController.RemoveProduct)
+	server.DELETE("/user/:user_id", UserController.RemoveUser)
+
+
+
 
 
 	server.GET("/ping", func(ctx *gin.Context) {

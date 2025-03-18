@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.comElcioAngelo/TrabalhoTCC.git/model"
 	"github.comElcioAngelo/TrabalhoTCC.git/usecase"
+	"strconv"
 )
 
 type userController struct {
@@ -61,3 +62,27 @@ func (u *userController) CreateUser(ctx *gin.Context) {
 		return 
 	}
 }
+
+func (u *userController) RemoveUser(ctx *gin.Context) {
+	id := ctx.Param("user_id")
+
+	num, stringError := strconv.Atoi(id)
+	if stringError != nil {
+		ctx.JSON(500,gin.H{
+			"message": "an error ocurred",
+			"error": stringError,
+		})
+	}
+
+	err := u.userUseCase.RemoveUser(num)
+	if err != nil {
+		ctx.JSON(403,gin.H{
+			"message": "cannot remove user",
+			"error": err,
+		})
+	}
+	ctx.JSON(200,gin.H{
+		"message": "Successfully deleted user",
+	})
+}
+

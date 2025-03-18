@@ -1,7 +1,9 @@
 package controller
 
 import (
+	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.comElcioAngelo/TrabalhoTCC.git/model"
@@ -42,6 +44,20 @@ func (p *ProductController) CreateProduct(ctx *gin.Context){
 		})
 	}
 
+	ProductError := p.usecase.CreateProduct(product)
+	if ProductError != nil {
+		ctx.JSON(http.StatusInternalServerError,gin.H{
+			"error": ProductError.Error(),
+		})
+		return
+	}else{
+		ctx.JSON(http.StatusOK,gin.H{
+			"message": "User created successfully!",
+			"user_name": product.Name,
+		})
+		return 
+	}
+
 
 	ctx.JSON(http.StatusOK,gin.H{
 		"message": "product created successfully",
@@ -71,19 +87,19 @@ func (p *ProductController) EditProduct(ctx *gin.Context) {
 		values = append(values, product.Name)
 	}
 	if product.Price != 0.0 {
-		fields = append(fields, "name = ?")
+		fields = append(fields, "price = ?")
 		values = append(values, product.Price)
 	}
 	if product.Description != "" {
-		fields = append(fields, "name = ?")
+		fields = append(fields, "description = ?")
 		values = append(values, product.Description)
 	}
 	if product.CategoryID != 0 {
-		fields = append(fields, "name = ?")
+		fields = append(fields, "category_id = ?")
 		values = append(values, product.CategoryID)
 	}
 	if product.BrandID != 0 {
-		fields = append(fields, "name = ?")
+		fields = append(fields, "brand_id = ?")
 		values = append(values, product.BrandID)
 	}
 
@@ -103,5 +119,28 @@ func (p *ProductController) EditProduct(ctx *gin.Context) {
 
 	ctx.JSON(200,gin.H{
 		"message": "product edited sucessfully",
+	})
+}
+
+
+func (p * ProductController) RemoveProduct(ctx * gin.Context) {
+	id := ctx.Param("product_id")
+
+	num, stringError := strconv.Atoi(id)
+	if stringError != nil {
+		fmt.Errorf("Error: %d", stringError)
+	}
+
+	err := p.usecase.RemoveProduct(num)
+	if err != nil {
+		ctx.JSON(500,gin.H{
+			"message": "could not update product",
+			"error": err,
+		})
+		return 
+	}
+
+	ctx.JSON(200,gin.H{
+		"message": "successfully deleted product",
 	})
 }

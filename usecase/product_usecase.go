@@ -47,5 +47,12 @@ func (pu *ProductUseCase) EditProduct(fields []string, values []interface{},id s
 	return err
 }
 
+func (pu *ProductUseCase) RemoveProduct(id int) (error) {
+	err := pu.repository.RemoveProduct(id);
+	if err != nil {
+		panic(err)
+	}
+	return err 
+}
 
 

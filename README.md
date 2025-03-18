@@ -30,13 +30,14 @@ Para melhor visualização do trabalho recomendo que instale essas extensões do
 
 #### Atualização 17/03:
 
-* Crud para produtos completo
+* Requisições get,post,delete criado para produtos e usuarios.
+
 
 
 
 ## Implementações futuras:
 
-* Terminar CRUDS
+* Implementar Patch para ambos usuários e produtos
 * Implementar Autenticação JWT
 * adcionar funções para administradores
 * terminar Patch do usuário.
@@ -323,4 +324,5 @@ create table stock_moviment (
 
 * Golang 
 * Docker
+* Postgresql
 

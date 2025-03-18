@@ -23,6 +23,11 @@ func (su *UserUseCase) CreateUser(user model.User) (error) {
 	return su.repository.CreateUser(user)
 }
 
+func (su *UserUseCase) RemoveUser(id int) (error) {
+	return su.repository.RemoveUser(id)
+}
+
+
 
 
 
