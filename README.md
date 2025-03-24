@@ -32,7 +32,10 @@ Para melhor visualização do trabalho recomendo que instale essas extensões do
 
 * Requisições get,post,delete criado para produtos e usuarios.
 
+## Atualização 24/03: 
 
+* Implementação de Rotas de alteração de produto: (Editar nome, categoria..).
+* 
 
 
 ## Implementações futuras:

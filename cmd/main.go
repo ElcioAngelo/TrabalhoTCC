@@ -33,23 +33,22 @@ func main() {
 
 	// * Requisições GET ################################################################################################
 	
-	server.GET("/user/:user_id",UserController.GetUser)
-	server.GET("/products", ProductController.GetProducts)
+	server.GET("/fetch/user/:user_id",UserController.GetUser)
+	server.GET("/fetch/products", ProductController.GetProducts)
 	
 	// * Requisições POST ################################################################################################
 	
-	server.POST("/createUser", UserController.CreateUser)
-	server.POST("/createProduct",ProductController.CreateProduct)
+	server.POST("/create/user", UserController.CreateUser)
+	server.POST("/create/product",ProductController.CreateProduct)
 	
 	// * Requisições PATCH ################################################################################################
 	
-	// !! Preciso de ajuda nas requisições de PATCH Para edição.
-
+	server.POST("/edit/Product/name",ProductController.EditProduct)
 	
 	// * Requisições DELETE ################################################################################################
 
-	server.DELETE("/deleteProduct/:product_id",ProductController.RemoveProduct)
-	server.DELETE("/user/:user_id", UserController.RemoveUser)
+	server.DELETE("/delete/product/:product_id",ProductController.RemoveProduct)
+	server.DELETE("/delte/user/:user_id", UserController.RemoveUser)
 
 
 

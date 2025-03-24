@@ -1,10 +1,7 @@
 package controller
 
 import (
-	"fmt"
 	"net/http"
-	"strconv"
-
 	"github.com/gin-gonic/gin"
 	"github.comElcioAngelo/TrabalhoTCC.git/model"
 	"github.comElcioAngelo/TrabalhoTCC.git/usecase"
@@ -57,60 +54,20 @@ func (p *ProductController) CreateProduct(ctx *gin.Context){
 		})
 		return 
 	}
-
-
-	ctx.JSON(http.StatusOK,gin.H{
-		"message": "product created successfully",
-	})
-
 }
 
 func (p *ProductController) EditProduct(ctx *gin.Context) {
-	id := ctx.Param("product_id")
-
+	
 	var product model.Product
-
-	if err := ctx.ShouldBind(&product); err != nil {
-		ctx.JSON(400, gin.H{
-			"error": "invalid input",
-		})
-		return
+	var id = product.ID
+	var value string 
+	
+	switch(value) {
+	case "" :
 	}
 
 
-	// * Alterando o product de acordo com os campos retornados.
-	var fields []string
-	var values []interface{}
-
-	if product.Name != "" {
-		fields = append(fields, "name = ?")
-		values = append(values, product.Name)
-	}
-	if product.Price != 0.0 {
-		fields = append(fields, "price = ?")
-		values = append(values, product.Price)
-	}
-	if product.Description != "" {
-		fields = append(fields, "description = ?")
-		values = append(values, product.Description)
-	}
-	if product.CategoryID != 0 {
-		fields = append(fields, "category_id = ?")
-		values = append(values, product.CategoryID)
-	}
-	if product.BrandID != 0 {
-		fields = append(fields, "brand_id = ?")
-		values = append(values, product.BrandID)
-	}
-
-	if len(fields) == 0 {
-		ctx.JSON(400, gin.H{
-			"error": "no fields to update",
-		})
-	}
-
-	productError := p.usecase.EditProduct(fields,values,id)
-	if productError != nil {
+	productError := ctx.ShouldBind(id); if productError != nil {
 		ctx.JSON(500,gin.H{
 			"message": "error while editing product",
 			"error": productError,
@@ -119,28 +76,5 @@ func (p *ProductController) EditProduct(ctx *gin.Context) {
 
 	ctx.JSON(200,gin.H{
 		"message": "product edited sucessfully",
-	})
-}
-
-
-func (p * ProductController) RemoveProduct(ctx * gin.Context) {
-	id := ctx.Param("product_id")
-
-	num, stringError := strconv.Atoi(id)
-	if stringError != nil {
-		fmt.Errorf("Error: %d", stringError)
-	}
-
-	err := p.usecase.RemoveProduct(num)
-	if err != nil {
-		ctx.JSON(500,gin.H{
-			"message": "could not update product",
-			"error": err,
-		})
-		return 
-	}
-
-	ctx.JSON(200,gin.H{
-		"message": "successfully deleted product",
 	})
 }

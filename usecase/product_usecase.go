@@ -38,21 +38,31 @@ func (pu *ProductUseCase) GetProductById(id_product int) (*model.Product, error)
 	return product, nil
 }
 
-func (pu *ProductUseCase) EditProduct(fields []string, values []interface{},id string) (error) {
-
-	err := pu.repository.EditProduct(fields,values,id)
+func(pu *ProductUseCase) EditProductName(id_product int, value_to_update string) (error) {
+	err := pu.repository.EditProductName(id_product,value_to_update)
 	if err != nil {
-		panic(err)
+		return err
 	}
+
 	return err
 }
 
-func (pu *ProductUseCase) RemoveProduct(id int) (error) {
-	err := pu.repository.RemoveProduct(id);
+func(pu *ProductUseCase) EditProductCategory(id_product int, value_to_update string) (error)  {
+	err := pu.repository.EditProductCategory(id_product,value_to_update)
 	if err != nil {
-		panic(err)
+		return err
 	}
-	return err 
+
+	return err
+}
+
+func(pu *ProductUseCase) EditProductPrice(id_product int, value_to_update string) (error)  {
+	err := pu.repository.EditProductPrice(id_product,value_to_update)
+	if err != nil {
+		return err
+	}
+
+	return err
 }
 
 

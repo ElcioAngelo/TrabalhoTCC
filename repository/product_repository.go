@@ -3,7 +3,6 @@ package repository
 import (
 	"database/sql"
 	"fmt"
-	"strings"
 
 	"github.comElcioAngelo/TrabalhoTCC.git/model"
 )
@@ -21,7 +20,10 @@ func NewProductRepository(connection *sql.DB) ProductRepository {
 
 func (pr *ProductRepository) GetProducts() ([]model.Product, error) {
 
-	query := `SELECT * FROM products;`
+	query := `select p."name", p.description, c."name" as "product_category", b."name" as "product_brand"
+	from products p
+	inner join categories c on p.category_id  = c.id
+	inner join brands b on p.brand_id  = b.id;`
 
 	rows, err := pr.connection.Query(query)
 	if err != nil {
@@ -38,8 +40,8 @@ func (pr *ProductRepository) GetProducts() ([]model.Product, error) {
 			&productObj.Name,
 			&productObj.Price,
 			&productObj.Description,
-			&productObj.CategoryID,
-			&productObj.BrandID,
+			&productObj.Category,
+			&productObj.Brand,
 		)
 		if err != nil {
 			fmt.Println(err)
@@ -63,8 +65,8 @@ func (pr *ProductRepository) CreateProduct(product model.Product) (error) {
 	result, err := pr.connection.Exec(query,product.Name,
 		product.Price,
 		product.Description,
-		product.CategoryID,
-		product.BrandID)	
+		product.Category,
+		product.Brand)	
  	if err != nil {
 		panic(err)
 	}
@@ -102,38 +104,51 @@ func (pr *ProductRepository) GetProductById(id_product int) (*model.Product, err
 	return &produto, nil
 }
 
-func joinStrings(arr []string, seperator string) string {
-	return strings.Join(arr, seperator)
-}
-
-func (pr *ProductRepository) EditProduct(fields []string, values []interface{},id string) (error) {
-	
-	var setClauses []string
-	
-	for _, field := range fields {
-		setClauses = append(setClauses, fmt.Sprintf("%s = %s", setClauses,field))
-	}
-
-	setClause := joinStrings(setClauses, ", ")
-
-	query := fmt.Sprintf("update product set %s where id = %s", setClause, id)
-	
-	values = append(values,id)
-
-	_, err := pr.connection.Exec(query,values...); if err != nil {
-		return fmt.Errorf("error while updating product: %v", err)
-	}
-	return nil
-}
-
-func (pr *ProductRepository) RemoveProduct(id int) (error) {
-	query := 
-	`
-		delete from products where id = $1
-	`
-	_, err := pr.connection.Exec(query,id); 
+func(pr * ProductRepository) EditProductName(id_product int, value_to_update string) (error) {
+	_, err := pr.connection.Exec(`update table Products set "name" = $1 where id = $2`,value_to_update, id_product)
 	if err != nil {
 		panic(err)
 	}
-	return err
+
+	return err 
+}
+
+func(pr * ProductRepository) EditProductCategory(id_product int, value_to_update string) (error) {
+	_, err := pr.connection.Exec(`update table Products set "name" = $1 where id = $2`,value_to_update, id_product)
+	if err != nil {
+		panic(err)
+	}
+
+	return err 
+}
+
+func(pr * ProductRepository) EditProductPrice(id_product int, value_to_update string) (error) {
+	_, err := pr.connection.Exec(`update table Products set "name" = $1 where id = $2`,value_to_update, id_product)
+	if err != nil {
+		panic(err)
+	}
+
+	return err 
+}
+
+func (pr * ProductRepository) EditProduct(id_product int, type_of_edit string,value_to_update string) () {
+	
+	query := `update table Product set $1 = $2 where id = $3`
+	
+	switch type_of_edit {
+	case "name":
+		_, err := pr.connection.Exec(query,type_of_edit,id_product)
+		if err != nil {
+		panic(err)
+		}
+	case "category":
+		_, err := pr.connection.Exec(query,type_of_edit,id_product)
+		if err != nil {
+		panic(err)
+		}
+	case "description":
+	default:
+		panic("No matching value was found")
+	}
+
 }
