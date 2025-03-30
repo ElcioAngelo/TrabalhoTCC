@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.comElcioAngelo/TrabalhoTCC.git/model"
+	"trabalhoTcc.com/mod/model"
 )
 
 type ProductRepository struct {
@@ -48,6 +48,50 @@ func (pr *ProductRepository) GetProducts() ([]model.Product, error) {
 			return []model.Product{}, err
 		}
 
+		
+		// !! Caso o status do produto seja "inativo", 
+		// !! ele não é adcionado na lista,
+		// !! portanto não é mostrado.
+		if productObj.Product_Status != "inactive" {
+			productList = append(productList, productObj)
+		}
+	}
+
+	rows.Close()
+
+	return productList, nil
+}
+
+func (pr *ProductRepository) GetProductsAdmin() ([]model.Product, error) {
+
+	query := `select p."name", p.description, c."name" as "product_category", b."name" as "product_brand"
+	from products p
+	inner join categories c on p.category_id  = c.id
+	inner join brands b on p.brand_id  = b.id;`
+
+	rows, err := pr.connection.Query(query)
+	if err != nil {
+		fmt.Println(err)
+		return []model.Product{}, err
+	}
+
+	var productList []model.Product
+	var productObj model.Product
+
+	for rows.Next() {
+		err = rows.Scan(
+			&productObj.ID,
+			&productObj.Name,
+			&productObj.Price,
+			&productObj.Description,
+			&productObj.Category,
+			&productObj.Brand,
+		)
+		if err != nil {
+			fmt.Println(err)
+			return []model.Product{}, err
+		}
+
 		productList = append(productList, productObj)
 	}
 
@@ -55,6 +99,7 @@ func (pr *ProductRepository) GetProducts() ([]model.Product, error) {
 
 	return productList, nil
 }
+
 
 func (pr *ProductRepository) CreateProduct(product model.Product) (error) {
 
@@ -78,7 +123,13 @@ func (pr *ProductRepository) CreateProduct(product model.Product) (error) {
 
 func (pr *ProductRepository) GetProductById(id_product int) (*model.Product, error) {
 
-	query, err := pr.connection.Prepare("SELECT * FROM product WHERE id = $1")
+	query := `select p."name", p.description, c."name" as "product_category", b."name" as "product_brand"
+	from products p
+	inner join categories c on p.category_id  = c.id
+	inner join brands b on p.brand_id  = b.id
+	where id = $1;`
+
+	result, err := pr.connection.Query(query,id_product)
 	if err != nil {
 		fmt.Println(err)
 		return nil, err
@@ -86,10 +137,12 @@ func (pr *ProductRepository) GetProductById(id_product int) (*model.Product, err
 
 	var produto model.Product
 
-	err = query.QueryRow(id_product).Scan(
+	err = result.Scan(
 		&produto.ID,
 		&produto.Name,
 		&produto.Price,
+		&produto.Category,
+		&produto.Brand,
 	)
 
 	if err != nil {
@@ -100,55 +153,116 @@ func (pr *ProductRepository) GetProductById(id_product int) (*model.Product, err
 		return nil, err
 	}
 
-	query.Close()
+	result.Close()
+
+	// !! produto com status inativo não é retornado.
+	if produto.Product_Status == "inactive"{
+		return &produto, nil
+	}else{
+		return &model.Product{}, nil
+	}
+}
+
+func (pr *ProductRepository) GetProductByIdAdmin(id_product int) (*model.Product, error) {
+
+	query := `select p."name", p.description, c."name" as "product_category", b."name" as "product_brand"
+	from products p
+	inner join categories c on p.category_id  = c.id
+	inner join brands b on p.brand_id  = b.id
+	where id = $1;`
+
+	result, err := pr.connection.Query(query,id_product)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	var produto model.Product
+
+	err = result.Scan(
+		&produto.ID,
+		&produto.Name,
+		&produto.Price,
+		&produto.Category,
+		&produto.Brand,
+	)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+
+		return nil, err
+	}
+
+	result.Close()
 	return &produto, nil
 }
 
-func(pr * ProductRepository) EditProductName(id_product int, value_to_update string) (error) {
-	_, err := pr.connection.Exec(`update table Products set "name" = $1 where id = $2`,value_to_update, id_product)
+func (pr *ProductRepository) EditProductName(id_product int, value string) (error) {
+	var columnName = "name"
+
+	query := 
+	`
+		update Products 
+		set $1 = $2 
+		where id = $3
+	`
+
+	_, err := pr.connection.Exec(query,columnName,id_product,value)
 	if err != nil {
 		panic(err)
 	}
+	return err
 
-	return err 
 }
 
-func(pr * ProductRepository) EditProductCategory(id_product int, value_to_update string) (error) {
-	_, err := pr.connection.Exec(`update table Products set "name" = $1 where id = $2`,value_to_update, id_product)
+func (pr *ProductRepository) EditProductPrice(id_product int, value string) (error) {
+	var columnName = "price"
+
+	query := 
+	`
+		update Products 
+		set $1 = $2 
+		where id = $3
+	`
+
+	_, err := pr.connection.Exec(query,columnName,id_product,value)
 	if err != nil {
 		panic(err)
 	}
-
-	return err 
-}
-
-func(pr * ProductRepository) EditProductPrice(id_product int, value_to_update string) (error) {
-	_, err := pr.connection.Exec(`update table Products set "name" = $1 where id = $2`,value_to_update, id_product)
-	if err != nil {
-		panic(err)
-	}
-
-	return err 
-}
-
-func (pr * ProductRepository) EditProduct(id_product int, type_of_edit string,value_to_update string) () {
+	return err
 	
-	query := `update table Product set $1 = $2 where id = $3`
-	
-	switch type_of_edit {
-	case "name":
-		_, err := pr.connection.Exec(query,type_of_edit,id_product)
-		if err != nil {
-		panic(err)
-		}
-	case "category":
-		_, err := pr.connection.Exec(query,type_of_edit,id_product)
-		if err != nil {
-		panic(err)
-		}
-	case "description":
-	default:
-		panic("No matching value was found")
-	}
-
 }
+
+func (pr *ProductRepository) EditProductDescription(id_product int, value string) (error) {
+	var columnName = "description"
+
+	query := 
+	`
+		update Products 
+		set $1 = $2 
+		where id = $3
+	`
+
+	_, err := pr.connection.Exec(query,columnName,id_product,value)
+	if err != nil {
+		panic(err)
+	}
+	return err
+	
+}
+
+func (pr *ProductRepository) RemoveProduct(id_product int) (error) {
+	query := `
+	Update Products 
+	set status = $1
+	where id = $2
+	`
+	
+	_, err := pr.connection.Exec(query,id_product); if err != nil {
+		panic(err)
+	}
+	return err 
+} 
+

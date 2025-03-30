@@ -2,24 +2,38 @@ package controller
 
 import (
 	"net/http"
+	"strconv"
+
 	"github.com/gin-gonic/gin"
-	"github.comElcioAngelo/TrabalhoTCC.git/model"
-	"github.comElcioAngelo/TrabalhoTCC.git/usecase"
+	"trabalhoTcc.com/mod/model"
+	"trabalhoTcc.com/mod/repository"
 )
 
 type ProductController struct {
-	usecase usecase.ProductUseCase
+	repository repository.ProductRepository 
 }
 
-func NewProductController(usecase usecase.ProductUseCase) ProductController {
+func NewProductController(repository repository.ProductRepository) ProductController {
 	return ProductController {
-		usecase: usecase,
+		repository: repository,
 	}
 }
 
 func (p *ProductController) GetProducts(ctx *gin.Context){
 
-	products,err := p.usecase.GetProducts()
+	products,err := p.repository.GetProducts()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error": "failed to fetch products",
+			"message": err.Error(),
+		})
+	}
+	ctx.JSON(http.StatusOK, products)
+}
+
+func (p *ProductController) GetProductsAdmin(ctx *gin.Context){
+
+	products,err := p.repository.GetProductsAdmin()
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"error": "failed to fetch products",
@@ -41,9 +55,10 @@ func (p *ProductController) CreateProduct(ctx *gin.Context){
 		})
 	}
 
-	ProductError := p.usecase.CreateProduct(product)
+	ProductError := p.repository.CreateProduct(product)
 	if ProductError != nil {
 		ctx.JSON(http.StatusInternalServerError,gin.H{
+			"message": "error while creating product",
 			"error": ProductError.Error(),
 		})
 		return
@@ -56,25 +71,118 @@ func (p *ProductController) CreateProduct(ctx *gin.Context){
 	}
 }
 
-func (p *ProductController) EditProduct(ctx *gin.Context) {
-	
-	var product model.Product
-	var id = product.ID
-	var value string 
-	
-	switch(value) {
-	case "" :
+type value_update struct {
+	id 				int		`json:"id"`
+	value 			string 	`json:"value"`
+	update_type 	string 	`json:"update_type"`
+}
+
+// !! ALTERAR NOME DOS PRODUTOS 
+func(p * ProductController) EditProductName(ctx *gin.Context) {
+	type value struct {
+		Name string `json:"name"`
 	}
 
-
-	productError := ctx.ShouldBind(id); if productError != nil {
+	requestId := ctx.Param("user_id")
+	id, Iderr := strconv.Atoi(requestId);
+	if Iderr != nil {
 		ctx.JSON(500,gin.H{
-			"message": "error while editing product",
-			"error": productError,
+			"message": "error while transforming id to int",
+			"error": Iderr.Error(),
+		})
+	}
+ 
+	var request value 
+
+	err := ctx.ShouldBind(&request)
+	if err != nil {
+		ctx.JSON(403,gin.H{
+			"message": "error while parsing product name",
+			"error": err.Error(),
+		})
+	}
+
+	producterr := p.repository.EditProductName(id,request.Name)
+	if producterr != nil {
+		ctx.JSON(500,gin.H{
+			"message": "error while altering product name",
+			"error": producterr.Error(),
 		})
 	}
 
 	ctx.JSON(200,gin.H{
-		"message": "product edited sucessfully",
+		"message": "sucessfully updated product name",
+	})
+}
+// !! ALTERAR PREÇO DOS PRODUTOS
+func(p * ProductController) EditProductPrice(ctx *gin.Context) {
+	type value struct {
+		Price string `json:"price"`
+	}
+
+	requestId := ctx.Param("user_id")
+	id, Iderr := strconv.Atoi(requestId);
+	if Iderr != nil {
+		ctx.JSON(500,gin.H{
+			"message": "error while transforming id to int",
+			"error": Iderr.Error(),
+		})
+	}
+	var request value
+
+	err := ctx.ShouldBind(&request)
+	if err != nil {
+		ctx.JSON(403,gin.H{
+			"message": "error while parsing product price",
+			"error": err.Error(),
+		})
+	}
+
+	producterr := p.repository.EditProductPrice(id,request.Price)
+	if producterr != nil {
+		ctx.JSON(500,gin.H{
+			"message": "error while altering product price",
+			"error": producterr.Error(),
+		})
+	}
+	
+	ctx.JSON(200,gin.H{
+		"message": "sucessfully updated product price",
+	})
+}
+
+func(p * ProductController) EditProductDescription(ctx *gin.Context) {
+	type value struct {
+		Description string `json:"description"`
+	}
+
+	requestId := ctx.Param("user_id")
+	id, Iderr := strconv.Atoi(requestId);
+	if Iderr != nil {
+		ctx.JSON(500,gin.H{
+			"message": "error while transforming id to int",
+			"error": Iderr.Error(),
+		})
+	}
+	var request value
+
+	err := ctx.ShouldBind(&request)
+	if err != nil {
+		ctx.JSON(403,gin.H{
+			"message": "error while parsing product description",
+			"error": err.Error(),
+		})
+	}
+
+	producterr := p.repository.EditProductDescription(id,request.Description)
+	if producterr != nil {
+		ctx.JSON(500,gin.H{
+			"message": "error while altering product description",
+			"error": producterr.Error(),
+		})
+	}
+	
+	ctx.JSON(200,gin.H{
+		"message": "sucessfully updated product description",
 	})
 }

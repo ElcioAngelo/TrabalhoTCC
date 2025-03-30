@@ -2,20 +2,20 @@ package controller
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.comElcioAngelo/TrabalhoTCC.git/model"
-	"github.comElcioAngelo/TrabalhoTCC.git/usecase"
-	"strconv"
+	"trabalhoTcc.com/mod/model"
+	"trabalhoTcc.com/mod/repository"
 )
 
 type userController struct {
-	userUseCase usecase.UserUseCase
+	repository repository.UserRepository
 }
 
-func NewUserController(usecase usecase.UserUseCase) userController {
+func NewUserController(repository repository.UserRepository) userController {
 	return userController{
-		userUseCase: usecase,
+		repository: repository,
 	}
 }
 
@@ -23,7 +23,7 @@ func (u *userController) GetUser(ctx *gin.Context) {
 	user_id := ctx.Param("user_id")
 
 
-	user, err := u.userUseCase.GetUser(user_id)
+	user, err := u.repository.GetUser(user_id)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, err)
 		return 
@@ -34,8 +34,6 @@ func (u *userController) GetUser(ctx *gin.Context) {
 
 func (u *userController) CreateUser(ctx *gin.Context) {
 	var user model.User
-
-
 
 	// * Recebe o Body do JSON (nome,email..etc)
 	err := ctx.ShouldBind(&user)
@@ -48,8 +46,8 @@ func (u *userController) CreateUser(ctx *gin.Context) {
 
 	
 
-	Usererror := u.userUseCase.CreateUser(user)
-	if Usererror != nil {
+	Usererr := u.repository.CreateUser(user)
+	if	Usererr != nil {
 		ctx.JSON(http.StatusInternalServerError,gin.H{
 			"error": err.Error(),
 		})
@@ -63,26 +61,228 @@ func (u *userController) CreateUser(ctx *gin.Context) {
 	}
 }
 
-func (u *userController) RemoveUser(ctx *gin.Context) {
-	id := ctx.Param("user_id")
 
-	num, stringError := strconv.Atoi(id)
-	if stringError != nil {
+
+func (u *userController) RemoveUser(ctx *gin.Context) {
+	type status struct {
+		Value string  `json:"value"`
+	}
+
+	// TODO: user remover.
+
+}
+
+func (u *userController) EditUserName(ctx *gin.Context) {
+	
+	type UpdateUsername struct {
+		Name string `json:"username"`
+	}
+
+	var request UpdateUsername
+	requestId := ctx.Param("user_id")
+	id, Iderr := strconv.Atoi(requestId);
+	if Iderr != nil {
 		ctx.JSON(500,gin.H{
-			"message": "an error ocurred",
-			"error": stringError,
+			"message": "error while transforming id to int",
+			"error": Iderr.Error(),
 		})
 	}
 
-	err := u.userUseCase.RemoveUser(num)
+	err := ctx.ShouldBind(&request);
 	if err != nil {
 		ctx.JSON(403,gin.H{
-			"message": "cannot remove user",
-			"error": err,
+			"message": "cannot parse user name",
+			"error": err.Error(),
 		})
 	}
+
+	userUpdateError := u.repository.EditUserName(id,request.Name)
+	if userUpdateError != nil {
+		ctx.JSON(403,gin.H{
+			"message": "cannot change user name",
+			"error": err.Error(),
+		})
+	}
+
 	ctx.JSON(200,gin.H{
-		"message": "Successfully deleted user",
+		"message": "user updated successfully!",
+		"error": request.Name,
 	})
 }
 
+func (u *userController) EditUserPassword(ctx *gin.Context) {
+	
+	type Update struct {
+		Password string `json:"password"`
+	}
+
+	var request Update
+	requestId := ctx.Param("user_id")
+	id, Iderr := strconv.Atoi(requestId);
+	if Iderr != nil {
+		ctx.JSON(500,gin.H{
+			"message": "error while transforming id to int",
+			"error": Iderr.Error(),
+		})
+	}
+
+	err := ctx.ShouldBind(&request);
+	if err != nil {
+		ctx.JSON(403,gin.H{
+			"message": "cannot parse user password",
+			"error": err.Error(),
+		})
+	}
+
+	userUpdateError := u.repository.EditUserPassword(id,request.Password)
+	if userUpdateError != nil {
+		ctx.JSON(403,gin.H{
+			"message": "cannot change user password",
+			"error": err.Error(),
+		})
+	}
+
+	ctx.JSON(200,gin.H{
+		"message": "user password successfully!",
+	})
+}
+
+func (u *userController) EditUserShipmentAdress(ctx *gin.Context) {
+	
+	type Update struct {
+		ShippingAddress string `json:"shipping_address"`
+	}
+
+	var request Update
+	requestId := ctx.Param("user_id")
+	id, Iderr := strconv.Atoi(requestId);
+	if Iderr != nil {
+		ctx.JSON(500,gin.H{
+			"message": "error while transforming id to int",
+			"error": Iderr.Error(),
+		})
+	}
+
+	err := ctx.ShouldBind(&request);
+	if err != nil {
+		ctx.JSON(403,gin.H{
+			"message": "cannot parse user password",
+			"error": err.Error(),
+		})
+	}
+
+	userUpdateError := u.repository.EditUserShipmentAdress(id,request.ShippingAddress)
+	if userUpdateError != nil {
+		ctx.JSON(403,gin.H{
+			"message": "cannot change user shipping address",
+			"error": err.Error(),
+		})
+	}
+
+	ctx.JSON(200,gin.H{
+		"message": "user shipaddress successfully!",
+	})
+}
+
+func (u *userController) EditUserPaymentAdress(ctx *gin.Context) {
+	
+	type Update struct {
+		PaymentAddress string `json:"payment_address"`
+	}
+
+	var request Update
+	requestId := ctx.Param("user_id")
+	id, Iderr := strconv.Atoi(requestId);
+	if Iderr != nil {
+		ctx.JSON(500,gin.H{
+			"message": "error while transforming id to int",
+			"error": Iderr.Error(),
+		})
+	}
+
+	err := ctx.ShouldBind(&request.PaymentAddress);
+	if err != nil {
+		ctx.JSON(403,gin.H{
+			"message": "cannot parse user payaddress",
+			"error": err.Error(),
+		})
+	}
+
+	userUpdateError := u.repository.EditUserPaymentAdress(id,request.PaymentAddress)
+	if userUpdateError != nil {
+		ctx.JSON(403,gin.H{
+			"message": "cannot change user payaddress",
+			"error": err.Error(),
+		})
+	}
+
+	ctx.JSON(200,gin.H{
+		"message": "user pay address successfully!",
+	})
+}
+
+func(u *userController) EditUserCellphone(ctx *gin.Context) {
+	type value struct {
+		Cellphone string `json:"cellphone"`
+	}
+
+	var request value
+
+	requestId := ctx.Param("user_id")
+	id, Iderr := strconv.Atoi(requestId);
+	if Iderr != nil {
+		ctx.JSON(500,gin.H{
+			"message": "error while transforming id to int",
+			"error": Iderr.Error(),
+		})
+	}
+
+	numberErr := ctx.ShouldBind(&request.Cellphone);
+	if numberErr != nil {
+		ctx.JSON(500,gin.H{
+			"message": "error while parsing user cellphone",
+			"error": numberErr.Error(),
+		})
+	}
+	
+	err := u.repository.EditUserCellphone(id,request.Cellphone);
+	if err != nil {
+		ctx.JSON(500,gin.H{
+			"message": "error while updating user cellphone",
+			"error": numberErr.Error(),
+		})
+	}
+}
+
+func(u *userController) EditUserEmail(ctx *gin.Context) {
+	type value struct {
+		Email string `json:"email"`
+	}
+
+	var request value
+
+	requestId := ctx.Param("user_id")
+	id, Iderr := strconv.Atoi(requestId);
+	if Iderr != nil {
+		ctx.JSON(500,gin.H{
+			"message": "error while transforming id to int",
+			"error": Iderr.Error(),
+		})
+	}
+
+	numberErr := ctx.ShouldBind(&request.Email);
+	if numberErr != nil {
+		ctx.JSON(500,gin.H{
+			"message": "error while parsing user cellphone",
+			"error": numberErr.Error(),
+		})
+	}
+	
+	err := u.repository.EditUserCellphone(id,request.Email);
+	if err != nil {
+		ctx.JSON(500,gin.H{
+			"message": "error while updating user cellphone",
+			"error": numberErr.Error(),
+		})
+	}
+}

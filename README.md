@@ -35,15 +35,23 @@ Para melhor visualização do trabalho recomendo que instale essas extensões do
 ## Atualização 24/03: 
 
 * Implementação de Rotas de alteração de produto: (Editar nome, categoria..).
-* 
+
+## Atualização 29/03:
+
+* Implementação de rotas para usuários:
+	- Edição de valores do usuário em rotas separadas.
+* Implementação de rotas para produtos:
+	- Edição de valores do produto em rotas separadas.
+* Produtos e usuários não são excluidos, apenas
+o estatus é alterado ("inativo", "ativo").
+* Produtos e usuários com status inativo não aparecem para usuários comuns.
 
 
-## Implementações futuras:
-
-* Implementar Patch para ambos usuários e produtos
-* Implementar Autenticação JWT
-* adcionar funções para administradores
-* terminar Patch do usuário.
+## Funcionalidades Faltando:
+	- verificação json web token.
+	- Middleware para autenticação.
+	- verificação de administradores.
+	- front-end. 
 
 ## Banco de dados:
 
