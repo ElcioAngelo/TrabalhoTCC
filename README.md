@@ -111,17 +111,18 @@ o estatus é alterado ("inativo", "ativo").
 |---------------|-------------------|--------------------------------------------|
 | `id`          | `serial`          | `PRIMARY KEY`                              |
 | `product_id`  | `int`             | `FOREIGN KEY (product_id) REFERENCES Products(id)` |
-| `user_id`     | `int`             | `FOREIGN KEY (user_id) REFERENCES Users(id)` |
+| `quantity`     | `int`             | 						 |
+| `price`	| `int`		    |						|
+| `order_id`	| `int`		    | `FOREIGN KEY (order_id) REFERENCES orders(id)` |
 
 #### Orders Table
 | Column            | Data Type         | Constraints                                |
 |-------------------|-------------------|--------------------------------------------|
 | `id`              | `serial`          | `PRIMARY KEY`                              |
 | `order_date`      | `date`            | `DEFAULT NULL`                             |
-| `product_quantity`| `int`             | `DEFAULT 0`                                |
 | `status`          | `orderStatus`     |                                            |
 | `payment_method`  | `paymentMethod`   |                                            |
-| `item_order_id`   | `int`             | `FOREIGN KEY (item_order_id) REFERENCES Item_order(id)` |
+| `user_id`	    | `int`		|`FOREIGN KEY (user_id) REFERENCES users(id)`|
 
 #### Favorites Table
 | Column        | Data Type         | Constraints                                |
