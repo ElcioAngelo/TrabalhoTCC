@@ -47,11 +47,9 @@ o estatus é alterado ("inativo", "ativo").
 * Produtos e usuários com status inativo não aparecem para usuários comuns.
 
 
-## Funcionalidades Faltando:
-	- verificação json web token.
-	- Middleware para autenticação.
-	- verificação de administradores.
-	- front-end. 
+## Implementações futuras:
+* Encriptografar informações (email,endereços,número de telefone)
+
 
 ## Banco de dados:
 

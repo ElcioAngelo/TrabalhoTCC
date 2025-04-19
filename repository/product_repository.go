@@ -20,84 +20,105 @@ func NewProductRepository(connection *sql.DB) ProductRepository {
 
 func (pr *ProductRepository) GetProducts() ([]model.Product, error) {
 
-	query := `select p."name", p.description, c."name" as "product_category", b."name" as "product_brand"
-	from products p
-	inner join categories c on p.category_id  = c.id
-	inner join brands b on p.brand_id  = b.id;`
+    query := `
+        select p.id, p."name", p.description, p.price, c."name" as "product_category", 
+               br."name" as "product_brand", p.status as "product_status"
+        from Products p
+        inner join product_categories prc on p.id = prc.product_id
+        inner join brands br on br.id = p.brand_id
+        inner join categories c on c.id = prc.category_id;
+    `
 
-	rows, err := pr.connection.Query(query)
-	if err != nil {
-		fmt.Println(err)
-		return []model.Product{}, err
-	}
+    rows, err := pr.connection.Query(query)
+    if err != nil {
+        fmt.Println("Error executing query:", err)
+        return []model.Product{}, err
+    }
+    defer rows.Close()
 
-	var productList []model.Product
-	var productObj model.Product
+    var productList []model.Product
+    var productObj model.Product
 
-	for rows.Next() {
-		err = rows.Scan(
-			&productObj.ID,
-			&productObj.Name,
-			&productObj.Price,
-			&productObj.Description,
-			&productObj.Category,
-			&productObj.Brand,
-		)
-		if err != nil {
-			fmt.Println(err)
-			return []model.Product{}, err
-		}
+    for rows.Next() {
+        err = rows.Scan(
+            &productObj.ID,
+            &productObj.Name,
+            &productObj.Description,
+            &productObj.Price,
+            &productObj.Category,
+            &productObj.Brand,
+            &productObj.Product_Status, // Ensure you're scanning the status
+        )
+        if err != nil {
+            fmt.Println("Error scanning row:", err)
+            return []model.Product{}, err
+        }
 
-		
-		// !! Caso o status do produto seja "inativo", 
-		// !! ele não é adcionado na lista,
-		// !! portanto não é mostrado.
-		if productObj.Product_Status != "inactive" {
-			productList = append(productList, productObj)
-		}
-	}
+        // Log the values to see what's being returned from the query
+        fmt.Printf("Scanned product: %+v\n", productObj)
 
-	rows.Close()
+        // If the status is "inactive", skip adding the product to the list
+        if productObj.Product_Status != "inactive" {
+            productList = append(productList, productObj)
+        } else {
+            fmt.Printf("Skipping inactive product: %+v\n", productObj)
+        }
+    }
 
-	return productList, nil
+    // Check if we encountered any rows
+    if len(productList) == 0 {
+        fmt.Println("No products found or all products are inactive")
+    }
+
+    return productList, nil
 }
 
-func (pr *ProductRepository) GetProductsAdmin() ([]model.Product, error) {
 
-	query := `select p."name", p.description, c."name" as "product_category", b."name" as "product_brand"
-	from products p
-	inner join categories c on p.category_id  = c.id
-	inner join brands b on p.brand_id  = b.id;`
 
-	rows, err := pr.connection.Query(query)
-	if err != nil {
-		fmt.Println(err)
-		return []model.Product{}, err
-	}
+func (pr *ProductRepository) GetProductsAll() ([]model.Product, error) {
 
-	var productList []model.Product
-	var productObj model.Product
+    query := `
+        select p.id, p."name", p.description, p.price, c."name" as "product_category", 
+               br."name" as "product_brand", p.status as "product_status"
+        from Products p
+        inner join product_categories prc on p.id = prc.product_id
+        inner join brands br on br.id = p.brand_id
+        inner join categories c on c.id = prc.category_id;
+    `
 
-	for rows.Next() {
-		err = rows.Scan(
-			&productObj.ID,
-			&productObj.Name,
-			&productObj.Price,
-			&productObj.Description,
-			&productObj.Category,
-			&productObj.Brand,
-		)
-		if err != nil {
-			fmt.Println(err)
-			return []model.Product{}, err
-		}
+    rows, err := pr.connection.Query(query)
+    if err != nil {
+        fmt.Println("Error executing query:", err)
+        return []model.Product{}, err
+    }
+    defer rows.Close()
 
-		productList = append(productList, productObj)
-	}
+    var productList []model.Product
+    var productObj model.Product
 
-	rows.Close()
+    for rows.Next() {
+        err = rows.Scan(
+            &productObj.ID,
+            &productObj.Name,
+            &productObj.Description,
+            &productObj.Price,
+            &productObj.Category,
+            &productObj.Brand,
+            &productObj.Product_Status, // Ensure you're scanning the status
+        )
+        if err != nil {
+            fmt.Println("Error scanning row:", err)
+            return []model.Product{}, err
+        }
 
-	return productList, nil
+        // Log the values to see what's being returned from the query
+        fmt.Printf("Scanned product: %+v\n", productObj)
+
+        // If the status is "inactive", skip adding the product to the list
+            productList = append(productList, productObj)
+    }
+
+    return productList, nil
 }
 
 
@@ -123,11 +144,14 @@ func (pr *ProductRepository) CreateProduct(product model.Product) (error) {
 
 func (pr *ProductRepository) GetProductById(id_product int) (*model.Product, error) {
 
-	query := `select p."name", p.description, c."name" as "product_category", b."name" as "product_brand"
-	from products p
-	inner join categories c on p.category_id  = c.id
-	inner join brands b on p.brand_id  = b.id
-	where id = $1;`
+	query := ` 
+ 		select p.id, p."name", p.description, p.price, c."name" as "product_category", 
+               br."name" as "product_brand", p.status as "product_status"
+        from Products p
+        inner join product_categories prc on p.id = prc.product_id
+        inner join brands br on br.id = p.brand_id
+        inner join categories c on c.id = prc.category_id
+        where p.id = $1;`
 
 	result, err := pr.connection.Query(query,id_product)
 	if err != nil {
@@ -137,30 +161,35 @@ func (pr *ProductRepository) GetProductById(id_product int) (*model.Product, err
 
 	var produto model.Product
 
-	err = result.Scan(
-		&produto.ID,
-		&produto.Name,
-		&produto.Price,
-		&produto.Category,
-		&produto.Brand,
-	)
+	if result.Next(){
+		err = result.Scan(
+			&produto.ID,
+			&produto.Name,
+			&produto.Description,
+			&produto.Price,
+			&produto.Category,
+			&produto.Brand,
+			&produto.Product_Status,
+		)
 
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, nil
+		if err != nil {
+			if err == sql.ErrNoRows {
+				return nil, nil
+			}
+
+			return nil, err
 		}
-
-		return nil, err
 	}
 
 	result.Close()
 
-	// !! produto com status inativo não é retornado.
-	if produto.Product_Status == "inactive"{
-		return &produto, nil
-	}else{
-		return &model.Product{}, nil
-	}
+	// // !! produto com status inativo não é retornado.
+	// if produto.Product_Status == "inactive"{
+	// 	return &produto, nil
+	// }else{
+	// 	return &model.Product{}, nil
+	// }
+	return &produto, err
 }
 
 func (pr *ProductRepository) GetProductByIdAdmin(id_product int) (*model.Product, error) {

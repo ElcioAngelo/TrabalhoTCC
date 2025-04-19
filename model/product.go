@@ -5,7 +5,7 @@ type Product struct {
 	Name 			string 		`json:"name"`
 	Price 			float64		`json:"price"`
 	Description 	string 		`json:"description"`
-	Category 		int			`json:"product_category"`
-	Brand			int			`json:"product_brand"`
+	Category 		string		`json:"product_category"`
+	Brand			string		`json:"product_brand"`
 	Product_Status 	string		`json:"product_status"`
 }

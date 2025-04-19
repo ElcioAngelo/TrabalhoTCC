@@ -1,9 +1,9 @@
-package db 
+package db
 
 import (
 	"database/sql"
 	"fmt"
-	
+
 	_ "github.com/lib/pq"
 )
 
@@ -23,7 +23,6 @@ func ConnectDB() (*sql.DB, error) {
 	if err != nil {
 		panic(err)
 	}
-
 	err = db.Ping()
 	if err != nil {
 		panic(err)

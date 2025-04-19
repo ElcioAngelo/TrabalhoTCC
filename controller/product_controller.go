@@ -19,6 +19,27 @@ func NewProductController(repository repository.ProductRepository) ProductContro
 	}
 }
 
+func (p *ProductController) GetProduct(ctx *gin.Context){
+	requestId := ctx.Param("product_id");
+
+	id,err := strconv.Atoi(requestId);
+	if err != nil {
+		ctx.JSON(http.StatusBadGateway,gin.H{
+			"message": "failed to parse int",
+			"error": err.Error(),
+		})
+	}
+
+	product,err := p.repository.GetProductById(id);
+	if err != nil {
+		ctx.JSON(http.StatusBadGateway,gin.H{
+			"message": "failed to parse int",
+			"error": err.Error(),
+		})
+	}
+	ctx.JSON(http.StatusOK,product)
+}
+
 func (p *ProductController) GetProducts(ctx *gin.Context){
 
 	products,err := p.repository.GetProducts()
@@ -33,7 +54,7 @@ func (p *ProductController) GetProducts(ctx *gin.Context){
 
 func (p *ProductController) GetProductsAdmin(ctx *gin.Context){
 
-	products,err := p.repository.GetProductsAdmin()
+	products,err := p.repository.GetProductsAll()
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"error": "failed to fetch products",

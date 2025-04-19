@@ -1,9 +1,11 @@
 package main
 
 import (
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"trabalhoTcc.com/mod/controller"
 	"trabalhoTcc.com/mod/db"
+	"trabalhoTcc.com/mod/middleware"
 	"trabalhoTcc.com/mod/repository"
 )
 
@@ -11,12 +13,26 @@ import (
 
 func main() {
 	server := gin.Default()
-	
 	dbConnection, err := db.ConnectDB()
 	if err != nil {
 		panic(err)
 	}
+	
+	server.Use(cors.New(cors.Config{
+		// Allow requests from your front-end
+		AllowOrigins: []string{"http://localhost:3000"}, // Replace with your front-end origin
+		// Allow headers and methods as needed
+		AllowMethods: []string{"GET", "POST", "PUT", "DELETE"},
+		AllowHeaders: []string{"Origin", "Content-Type", "Authorization"},
+		AllowCredentials: true,
+	}))
 
+	protected := server.Group("/auth")
+	protected.Use(middleware.TokenAuthMiddleware())
+
+	// !! Rotas chamadas "servers" são rotas desprotegidas, não exigem JSONWEBTOKEN,
+	// !! Rotas chamadas "protected" são rotas protegidas, exigem JSONWEBTOKEN.
+	
 	// * Usuários ################################################################################################
 	
 	UserRepository := repository.NewUserRepository(dbConnection)
@@ -29,36 +45,34 @@ func main() {
 	ProductController := controller.NewProductController(ProductRepository)
 
 	// * Requisições GET ################################################################################################
-	
-	server.GET("/fetch/user/:user_id",UserController.GetUser)
+	protected.GET("/current_user",UserController.AuthMeHandler)
+	protected.GET("/fetch/user/:user_id",UserController.GetUser)
 	server.GET("/fetch/products", ProductController.GetProducts)
-	server.GET("/fetch/products/all",ProductController.GetProductsAdmin)
+	protected.GET("/fetch/products/all",ProductController.GetProductsAdmin)
+	server.GET("/fetch/product/:product_id",ProductController.GetProduct)
 	
 	// * Requisições POST ################################################################################################
-	
-	// TODO: server.POST("/create/user", UserController.CreateUser)
-	
+		
 	server.POST("/create/product",ProductController.CreateProduct)
+	server.POST("/create/user/",UserController.CreateUser)
+	server.POST("/user/login", UserController.UserVerification)
 	
 	// * Requisições PUT ################################################################################################
 	
-	server.PUT("/edit/user/:user_id/name",UserController.EditUserName)
-	server.PUT("/edit/user/:user_id/email",UserController.EditUserEmail)
-	server.PUT("/edit/user/:user_id/password",UserController.EditUserPassword)
-	server.PUT("/edit/user/:user_id/paymentaddress",UserController.EditUserPaymentAdress)
-	server.PUT("/edit/user/:user_id/shipmentaddress",UserController.EditUserShipmentAdress)
+	protected.PUT("/edit/user/:user_id/name",UserController.EditUserName)
+	protected.PUT("/edit/user/:user_id/email",UserController.EditUserEmail)
+	protected.PUT("/edit/user/:user_id/password",UserController.EditUserPassword)
+	protected.PUT("/edit/user/:user_id/paymentaddress",UserController.EditUserPaymentAdress)
+	protected.PUT("/edit/user/:user_id/shipmentaddress",UserController.EditUserShipmentAdress)
+	protected.PUT("/edit/user/:user_id/cellphone",UserController.EditUserCellphone)
 
-	server.PUT("/edit/Product/:product_id/name",ProductController.EditProductName)
-	server.PUT("/edit/Product/:product_id/price",ProductController.EditProductPrice)
-	server.PUT("/edit/Product/:product_id/description",ProductController.EditProductDescription)
+	protected.PUT("/edit/Product/:product_id/name",ProductController.EditProductName)
+	protected.PUT("/edit/Product/:product_id/price",ProductController.EditProductPrice)
+	protected.PUT("/edit/Product/:product_id/description",ProductController.EditProductDescription)
 	
 	// * Requisições DELETE ################################################################################################
 
-	// todo: server.DELETE("/delete/product/:product_id",ProductController)
-	server.DELETE("/delte/user/:user_id", UserController.RemoveUser)
-
-
-
+	protected.DELETE("/delte/user/:user_id", UserController.RemoveUser)
 
 	// * Verificação do funcionamento do servidor
 	server.GET("/ping", func(ctx *gin.Context) {
