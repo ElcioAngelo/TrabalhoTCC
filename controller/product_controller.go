@@ -207,3 +207,29 @@ func(p * ProductController) EditProductDescription(ctx *gin.Context) {
 		"message": "sucessfully updated product description",
 	})
 }
+
+func (p *ProductController) FindProductByCategory(ctx *gin.Context) {
+	category := ctx.Param("category");
+
+	products, err := p.repository.SearchProductByCategory(category);
+	if err != nil {
+		ctx.JSON(http.StatusBadGateway, gin.H{
+			"message": "unable to fetch products by category.",
+			"error": err.Error(),
+		})
+	}
+
+	ctx.JSON(http.StatusOK, products)
+}
+
+func (p *ProductController) GetProductSales(ctx *gin.Context){
+
+	sales, err := p.repository.GetSales();
+	if err != nil {
+		ctx.JSON(http.StatusBadGateway, gin.H{
+			"message": "unable to fetch sales",
+			"error": err.Error(),
+		})
+	}
+	ctx.JSON(http.StatusOK,sales);
+}

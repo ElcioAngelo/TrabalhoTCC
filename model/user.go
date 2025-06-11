@@ -1,12 +1,29 @@
 package model
 
 type User struct {
-	ID              int       `json:"id"`                // * Unique identifier for the user
-	Name            string    `json:"name"`              // * Name of the user
-	Email           string    `json:"email"`             // * Email of the user
-	Password        string    `json:"password"`          // * User's password (in a real application, ensure it's hashed)
-	CellphoneNumber string    `json:"cellphone_number"`  // * Cellphone number of the user
-	ShippingAddress string    `json:"shipping_address"`  // * Shipping address for delivery
-	PaymentAddress  string    `json:"payment_address"`   // * Payment address (e.g., billing address)       // * Date when the user was created
+	ID              int       `json:"id"`                
+	Name            string    `json:"name"`              
+	Email           string    `json:"email"`             
+	Password        string    `json:"password"`
+	CellphoneNumber string 	  `json:"cellphone_number"`
+	State			string 	  `json:"state"`
+	PostalCode		string 	  `json:"postal_code"`
+	City 			string 	  `json:"city"`
+	Address			string    `json:"address"`
+	AddressNumber	string	  `json:"address_number"`
+	UserRole		string	  `json:"user_role"`
 }
+ 
+// type User struct {
+//     UserID         int    `json:"user_id"`
+//     Name           string `json:"name"`
+//     Email          string `json:"email"`
+//     Password       string `json:"password"`
+//     CellphoneNumber string `json:"cellphone_number"`
+//     Address        string `json:"address"`
+//     AddressNumber  string `json:"address_number"`
+//     City           string `json:"city"`
+//     State          string `json:"state"`
+//     PostalCode     string `json:"postal_code"`
+// }
 

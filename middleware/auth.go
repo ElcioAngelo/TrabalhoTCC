@@ -11,10 +11,10 @@ import (
 	"trabalhoTcc.com/mod/model"
 )
 
-var mySigningKey = []byte(os.Getenv("SECRET_KEY")) // Signing key for JWT
+var mySigningKey = []byte(os.Getenv("SECRET_KEY")) // ** Chave assinadora das JWT
 
 
-// Middleware to validate JWT token
+// ** Middleware para a validação das JWT
 func TokenAuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 	
@@ -52,9 +52,10 @@ func TokenAuthMiddleware() gin.HandlerFunc {
 
 
 
-// Route to generate a JWT token
+// ** Rota de geração da JWT token
 func GenerateToken(id int,email string, user_role string) (string, error){
-	// Create the claims
+
+	// ? Criando as "claims"
 	claims := model.Claims{
 		UserID: id,
 		Email: email,
@@ -65,51 +66,52 @@ func GenerateToken(id int,email string, user_role string) (string, error){
 		},
 	}
 
-	// Create a new token with the claims
+	// ? Cria uma nova token com as "claims"
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	// Sign the token with the signing key
+	// ? Assina a token com a chave de assinatura
 	signedToken, err := token.SignedString(mySigningKey)
 
-	// Return the signed token
+	// ? Retorna a token assinada
 	return signedToken, err
 }
 
 
-// Protected route that requires a valid JWT token
+// ** Rota protegida que requer uma JWT Token válida.
 func ProtectedEndpoint(c *gin.Context) {
-	// Access the username from the claims
+	// ? Acessando o nome do usuário nas "claims"
 	username, _ := c.Get("username")
 	c.JSON(http.StatusOK, gin.H{"message": fmt.Sprintf("Hello, %s! You have access to this protected route.", username)})
 }
 
 func VerifyUserToken(c *gin.Context, userIDParam int) (*model.Claims, bool) {
-	// Get the token from the cookie
+
+	// ? Extração da token no cookie
 	tokenString, err := c.Cookie("jwtToken")
 	if err != nil || tokenString == "" {
 		c.JSON(http.StatusUnauthorized, gin.H{"message": "Authorization token is missing"})
 		return nil, false
 	}
 
-	// Parse the token
+	// ? "Parsando" a token.
 	token, err := jwt.ParseWithClaims(tokenString, &model.Claims{}, func(token *jwt.Token) (interface{}, error) {
 		return mySigningKey, nil
 	})
 
-	// Handle errors in parsing or invalid token
+	// ? Validação de erros sobre tokens expiradas ou invalidas.
 	if err != nil || !token.Valid {
 		c.JSON(http.StatusUnauthorized, gin.H{"message": "Invalid or expired token"})
 		return nil, false
 	}
 
-	// Extract claims
+	// ? Extração da "claims"
 	claims, ok := token.Claims.(*model.Claims)
 	if !ok {
 		c.JSON(http.StatusUnauthorized, gin.H{"message": "Invalid token claims"})
 		return nil, false
 	}
 
-	// Check if the user ID in the token matches the user ID passed in the request (userIDParam)
+	// ? Verifica se o id do usuário na token é o mesmo do usuário atual
 	if claims.UserID != userIDParam {
 		c.JSON(http.StatusUnauthorized, gin.H{"message": "User ID does not match the token"})
 		return nil, false

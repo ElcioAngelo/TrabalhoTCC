@@ -1,0 +1,13 @@
+
+.main {
+    background-color: #ff6e6e;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-content: center;
+    text-align: center;
+}
+
+input {
+    padding: 30;
+}

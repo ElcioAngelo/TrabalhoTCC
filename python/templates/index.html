@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
+  <meta charset="UTF-8">
+  <title>Envio de imagens</title>
+</head>
+<body>
+  <h1>Faça o envio de uma imagem</h1>
+  <form id="uploadForm">
+    <input type="file" id="imageInput" name="image" accept="image/*" required>
+    
+    <input type="text" id="imageName" name="imageName" placeholder="Digite o nome da imagem" required>
+    
+    <button type="submit">Enviar</button>
+  </form>
+
+  <button onclick="window.location = '/imageGallery'">
+    Galeria de imagens
+  </button>
+
+  <div id="message" style="margin-top: 1rem;"></div>
+
+  <script>
+    const form = document.getElementById('uploadForm');
+    const imageInput = document.getElementById('imageInput');
+    const imageName = document.getElementById('imageName');
+    const preview = document.getElementById('preview');
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const file = imageInput.files[0];
+      if (!file) return;
+
+      const formData = new FormData();
+      formData.append('image', file);
+      formData.append('imageName', imageName.value);
+
+      
+
+      try {
+        const response = await fetch('/upload', {
+          method: 'POST',
+          body: formData
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          const messageDiv = document.getElementById('message');
+          messageDiv.textContent = result.message 
+          messageDiv.style.color = 'green';
+
+          messageDiv.textContent = result.error || 'Falha ao enviar';
+          messageDiv.style.color = 'red';
+        } else {
+          if (response.status === 409) alert(result.error || 'Falha no envio, imagem já existe');
+          if (response.status === 400) alert(result.error || "Tipo de arquivo enviado invalido")
+          alert(result.error || 'Falha no envio');
+          
+        }
+      } catch (err) {
+        console.error('Error uploading image:', err);
+      }
+    });
+  </script>
+</body>
+</html>
