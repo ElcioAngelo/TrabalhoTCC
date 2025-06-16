@@ -1,4 +1,4 @@
-package db
+package database
 
 import (
 	"database/sql"
@@ -8,11 +8,11 @@ import (
 )
 
 const (
-	host = "localhost"
-	port = 5432
-	user = "postgres"
+	host     = "localhost"
+	port     = 5432
+	user     = "postgres"
 	password = "postgres"
-	dbname = "postgres"
+	dbname   = "postgres"
 )
 
 func ConnectDB() (*sql.DB, error) {

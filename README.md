@@ -10,10 +10,12 @@ Para uma melhor visualização do trabalho, recomendo que instale as seguintes e
 - **CMD** – contém o arquivo de inicialização do servidor  
 - **Model** – contém a representação das tabelas do banco de dados  
 - **Python** – servidor de imagens  
-- **DB** – conexão com o banco de dados  
+- **Database** – conexão com o banco de dados  
 - **Middleware** – função de autenticação utilizando cookies  
 - **Repository** – camada responsável pela execução de código SQL  
 - **Controller** – camada de requisições HTTP
+
+Para mais informações sobre o banco de dados e o servidor de imagens, acesse as pastas "Python" ou "Database"
 
 ## Atualização 14/03:
 
@@ -46,9 +48,11 @@ Para uma melhor visualização do trabalho, recomendo que instale as seguintes e
 - Produtos e usuários com status inativo não aparecem para usuários comuns.
 
 
-## Atualização 10/06
+## Atualizações 11/06 - 16/06
 
-* 
+- Implementação completa do servidor de imagens em python, usando flask.
+- Melhoria na legibilidade do código e adição de mais comentários no código.
+ 
 
 
 ## Implementações futuras:

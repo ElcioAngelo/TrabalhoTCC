@@ -3,6 +3,7 @@ package repository
 import (
 	"database/sql"
 	"fmt"
+
 	"golang.org/x/crypto/bcrypt"
 	"trabalhoTcc.com/mod/model"
 )
@@ -17,9 +18,9 @@ func NewUserRepository(connection *sql.DB) UserRepository {
 	}
 }
 
-func (ur *UserRepository) EncryptValue(value string) (string) {
+func (ur *UserRepository) EncryptValue(value string) string {
 	EncryptedValue, err := bcrypt.GenerateFromPassword([]byte(value),
-	bcrypt.DefaultCost)
+		bcrypt.DefaultCost)
 	if err != nil {
 		panic(err)
 	}
@@ -28,13 +29,13 @@ func (ur *UserRepository) EncryptValue(value string) (string) {
 
 func (ur *UserRepository) GetUserByID(user_id int) (model.User, error) {
 
-	query := 
-	`
+	query :=
+		`
 	select u.id, u.name, u.email, u.cellphone_number,
 	uid.state, uid.postal_code, uid.city, uid.address, uid.address_number,
 	ui.user_role 
 	from users u
-	inner join user_address_info uid on uid.user_id = u.id
+	inner join user_address_information uid on uid.user_id = u.id
 	inner join user_information ui on ui.user_id = u.id
 	where u.id = $1;
 	`
@@ -57,24 +58,24 @@ func (ur *UserRepository) GetUserByID(user_id int) (model.User, error) {
 		if err == sql.ErrNoRows {
 			panic(err.Error())
 		}
-		return user, err 
+		return user, err
 	}
 	return user, nil
 }
 
 // ? Estrutura para evitar de retornar a senha do usuário.
 type ReturnUser struct {
-	ID              int       `json:"id"`                
-	Name            string    `json:"name"`
-	Password		string 	  `json:"password"`              
-	Email           string    `json:"email"`            
-	CellphoneNumber string    `json:"cellphone_number"`  
-	State			string 	  `json:"state"`
-	PostalCode		string 	  `json:"postal_code"`
-	City 			string 	  `json:"city"`
-	Address			string    `json:"address"`
-	AddressNumber	int		  `json:"address_number"`
-	UserRole		string 	  `json:"user_role"`
+	ID              int    `json:"id"`
+	Name            string `json:"name"`
+	Password        string `json:"password"`
+	Email           string `json:"email"`
+	CellphoneNumber string `json:"cellphone_number"`
+	State           string `json:"state"`
+	PostalCode      string `json:"postal_code"`
+	City            string `json:"city"`
+	Address         string `json:"address"`
+	AddressNumber   int    `json:"address_number"`
+	UserRole        string `json:"user_role"`
 }
 
 func (ur *UserRepository) GetUsers() ([]ReturnUser, error) {
@@ -92,22 +93,22 @@ func (ur *UserRepository) GetUsers() ([]ReturnUser, error) {
 			   u.password 
 		from users u
 		join user_information ui on ui.user_id = u.id
-		inner join user_address_info uai on uai.user_id = u.id
+		inner join user_address_information uai on uai.user_id = u.id
 		`
 
-    rows, err := ur.connection.Query(query)
-    if err != nil {
-        panic(err.Error())
-    }
-    defer rows.Close()
+	rows, err := ur.connection.Query(query)
+	if err != nil {
+		panic(err.Error())
+	}
+	defer rows.Close()
 
-    var userList []ReturnUser
+	var userList []ReturnUser
 
-    for rows.Next() {
+	for rows.Next() {
 		var UserObj ReturnUser
 
-        err = rows.Scan(
-           	&UserObj.ID,
+		err = rows.Scan(
+			&UserObj.ID,
 			&UserObj.Name,
 			&UserObj.Email,
 			&UserObj.CellphoneNumber,
@@ -118,38 +119,39 @@ func (ur *UserRepository) GetUsers() ([]ReturnUser, error) {
 			&UserObj.AddressNumber,
 			&UserObj.UserRole,
 			&UserObj.Password,
-        )
-        if err != nil {
-            panic(err.Error())
-        }
-		userList = append(userList, UserObj)		
-        // Log the values to see what's being returned from the query
-        fmt.Printf("Scanned User: %+v\n", UserObj)
-    }
-    // Check if we encountered any rows
-    if len(userList) == 0 {
-        fmt.Println("No users found")
-    }
+		)
+		if err != nil {
+			panic(err.Error())
+		}
+		userList = append(userList, UserObj)
+		// Log the values to see what's being returned from the query
+		fmt.Printf("Scanned User: %+v\n", UserObj)
+	}
+	// Check if we encountered any rows
+	if len(userList) == 0 {
+		fmt.Println("No users found")
+	}
 
-    return userList, nil
+	return userList, nil
 }
 
 type User struct {
-	ID              int       `json:"id"`                
-	Name            string    `json:"name"`
-	Password		string 	  `json:"password"`              
-	Email           string    `json:"email"`            
-	CellphoneNumber string    `json:"cellphone_number"`  
-	State			string 	  `json:"state"`
-	PostalCode		string 	  `json:"postal_code"`
-	City 			string 	  `json:"city"`
-	Address			string    `json:"address"`
-	AddressNumber	string	  `json:"address_number"`
-	UserRole		string 	  `json:"user_role"`
+	ID              int    `json:"id"`
+	Name            string `json:"name"`
+	Password        string `json:"password"`
+	Email           string `json:"email"`
+	CellphoneNumber string `json:"cellphone_number"`
+	State           string `json:"state"`
+	PostalCode      string `json:"postal_code"`
+	City            string `json:"city"`
+	Address         string `json:"address"`
+	AddressNumber   string `json:"address_number"`
+	UserRole        string `json:"user_role"`
 }
+
 func (ur *UserRepository) UserVerification(user_email string, user_password string) (User, error) {
 
-		query := `
+	query := `
 		select u.id,
 			   u.name,
 			   u.email,
@@ -163,53 +165,53 @@ func (ur *UserRepository) UserVerification(user_email string, user_password stri
 			   u.password -- Fetch the password hash from the database
 		from users u
 		join user_information ui on ui.user_id = u.id
-		inner join user_address_info uai on uai.user_id = u.id
+		inner join user_address_information uai on uai.user_id = u.id
 		where u.email = $1;
 		`
-	
-		var user User
-	
-		err := ur.connection.QueryRow(query, user_email).Scan(
-			&user.ID,
-			&user.Name,
-			&user.Email,
-			&user.CellphoneNumber,
-			&user.State,
-			&user.PostalCode,
-			&user.City,
-			&user.Address,
-			&user.AddressNumber,
-			&user.UserRole,
-			&user.Password, 
-		)
-		if err != nil {
-			if err == sql.ErrNoRows {
-				// Handle user not found
-				return user, fmt.Errorf("user not found")
-			}
-			return user, err
+
+	var user User
+
+	err := ur.connection.QueryRow(query, user_email).Scan(
+		&user.ID,
+		&user.Name,
+		&user.Email,
+		&user.CellphoneNumber,
+		&user.State,
+		&user.PostalCode,
+		&user.City,
+		&user.Address,
+		&user.AddressNumber,
+		&user.UserRole,
+		&user.Password,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			// Handle user not found
+			return user, fmt.Errorf("user not found")
 		}
-	
-		err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(user_password))
-		if err != nil {
-			return user, fmt.Errorf("invalid password")
-		}
-	
-		return user, nil
+		return user, err
 	}
-	
-// TODO: A função de criação de usuários não está retornando o número de celular e o número de endereço.
-func (ur *UserRepository) CreateUser(user model.User) (error) {
-	
-	query := 
-	`
-		WITH inserted_user AS (
+
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(user_password))
+	if err != nil {
+		return user, fmt.Errorf("invalid password")
+	}
+
+	return user, nil
+}
+
+func (ur *UserRepository) CreateUser(user model.User) error {
+	// * Usando uma Common Table Expression, é possivel realizar várias
+	// * inserções sem necessitar de várias váriaveis.
+	query :=
+		`
+	WITH inserted_user AS (
 	INSERT INTO users (name, email, password, cellphone_number)
 	VALUES ($1, $2, $3, $4)
 	RETURNING id
 	),
 	inserted_address AS (
-	INSERT INTO user_address_info (
+	INSERT INTO user_address_information (
 		user_id, state, postal_code, city, address, address_number
 	)
 	VALUES (
@@ -227,13 +229,13 @@ func (ur *UserRepository) CreateUser(user model.User) (error) {
 
 	// ? Função para gerar o hash criptografado da senha
 	EncryptedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password),
-	bcrypt.DefaultCost)
+		bcrypt.DefaultCost)
 	if err != nil {
 		panic(err.Error())
 	}
 
-	_, err = ur.connection.Exec(query,user.Name,user.Email, EncryptedPassword,user.CellphoneNumber,
-		user.State,user.PostalCode, user.City,user.Address, user.AddressNumber)
+	_, err = ur.connection.Exec(query, user.Name, user.Email, EncryptedPassword, user.CellphoneNumber,
+		user.State, user.PostalCode, user.City, user.Address, user.AddressNumber)
 	if err != nil {
 		return fmt.Errorf("error while creating user: %w", err)
 	}
@@ -247,8 +249,8 @@ func (ur *UserRepository) UpdateUser(input map[string]interface{}, userID int) e
 		"email":            true,
 		"password":         true,
 		"cellphone_number": true,
-		"address": 			true,
-		"address_number": 	true,
+		"address":          true,
+		"address_number":   true,
 	}
 
 	query := "UPDATE users SET "
@@ -297,33 +299,32 @@ func (ur *UserRepository) UpdateUser(input map[string]interface{}, userID int) e
 	return nil
 }
 
-
-func(ur *UserRepository) setUserProducts(user_id int, order_id int,product_id int, quantity int) (error) {
+func (ur *UserRepository) setUserProducts(user_id int, order_id int, product_id int, quantity int) error {
 
 	query :=
-	`
+		`
 	insert into user_order (user_id, quantity, product_id, order_id)
 	values ($1, $2, $3, $4);
 	`
 
-	_, err := ur.connection.Exec(query, user_id, quantity, product_id, order_id);
+	_, err := ur.connection.Exec(query, user_id, quantity, product_id, order_id)
 	if err != nil {
 		panic(err.Error())
 	}
 
-	return err 
+	return err
 }
 
-
-func(ur *UserRepository) RemoveUser(user_id int) error {
-	query := 
-	`
+func (ur *UserRepository) RemoveUser(user_id int) error {
+	query :=
+		`
 		update users
 		set user_status = 'disabled'
 		where id = $1
 	`
 
-	_, err := ur.connection.Exec(query,user_id); if err != nil {
+	_, err := ur.connection.Exec(query, user_id)
+	if err != nil {
 		panic(err.Error())
 	}
 

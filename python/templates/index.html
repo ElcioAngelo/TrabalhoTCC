@@ -46,13 +46,8 @@
 
         const result = await response.json();
 
-        if (response.ok) {
-          const messageDiv = document.getElementById('message');
-          messageDiv.textContent = result.message 
-          messageDiv.style.color = 'green';
-
-          messageDiv.textContent = result.error || 'Falha ao enviar';
-          messageDiv.style.color = 'red';
+        if (response.status === 201) {
+          alert("Sucesso ao enviar a imagem!");
         } else {
           if (response.status === 409) alert(result.error || 'Falha no envio, imagem já existe');
           if (response.status === 400) alert(result.error || "Tipo de arquivo enviado invalido")

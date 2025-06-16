@@ -9,7 +9,7 @@ import uuid
 
 app = Flask(__name__)
 
-## ? Criação da pasta de imagens
+## ? Localiza a pasta de imagens
 IMAGE_FOLDER: str = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'images')
 
 ## ? Extensões de arquivos permitidas
@@ -18,11 +18,10 @@ ALLOWED_EXTENSIONS: set[str] = {'png','jpg','jpeg','gif','bmp','webp'}
 ## ? Verifica se a pasta das imagens existe 
 os.makedirs(IMAGE_FOLDER, exist_ok=True)
 
-## ? Verifica se o arquivo enviado é um arquivo de imagem
+## ? Verifica se o arquivo enviado é de uma extensão permitida
 def is_allowed_file(filename: str) -> bool:
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+    return '.' in filename and filename.split('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-## ? Verifica novamente se o arquivo salvo é realmente uma imagem
 def is_valid_image(file_path: str) -> bool:
     try:
         with Image.open(file_path) as img:
@@ -30,8 +29,10 @@ def is_valid_image(file_path: str) -> bool:
         return True
     except Exception:
         return False
-    
 
+## ? Limita o tamanho máximo de arquivos enviados para 10MB
+app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024  
+    
 
 ## ** PÁGINA INICIAL
 @app.route('/',methods=['GET'])
@@ -43,7 +44,7 @@ def index():
 def return_images():
     files = []
     for filename in os.listdir(IMAGE_FOLDER):
-        if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.webp')):
+        if filename.lower().endswith(['.png', '.jpg', '.jpeg', '.gif', '.webp']):
             files.append(filename)
     return jsonify(files)
 
@@ -55,6 +56,7 @@ def serve_image(filename: str) -> Response:
     except FileNotFoundError:
         abort(404)
 
+## * Rota para a galeria de imagens.
 @app.route('/imageGallery')
 def image_galleri():
     return render_template('ImageGallery.html')
@@ -69,14 +71,14 @@ def upload_image() -> Response:
 
     ## ? Verifica se o arquivo foi enviado e se o nome é válido.
     if not file or not custom_name:
-        return jsonify({'error': 'Nenhum arquivo foi enviado'}), 400
+        return jsonify({'error': 'Nenhum arquivo foi enviado'}), 204
     
     ## ? Caso o arquivo enviado não seja do tipo aceitado, retorne erro.
     if not is_allowed_file(file.filename):
-        return jsonify({'error': 'Tipo de arquivo invalido'}), 400
+        return jsonify({'error': 'Tipo de arquivo invalido'}), 415
 
     ## ? Gera um novo nome de arquivo único, mantendo a extensão original
-    ext: str = secure_filename(file.filename).rsplit('.',1)[1].lower()
+    ext: str = secure_filename(file.filename).split('.',1)[1].lower()
     safe_name = secure_filename(custom_name) + '.' + ext
     
     ## ? Armazena a imagem renomeada
@@ -92,7 +94,7 @@ def upload_image() -> Response:
     ## ? Verificação se o arquivo é uma imagem válida
     if not is_valid_image(file_path):
         os.remove(file_path)
-        return jsonify({'error': 'O arquivo não é uma imagem valida'}), 400
+        return jsonify({'error': 'O arquivo não é uma imagem valida'}), 415
     
     return jsonify({'message': 'Imagem enviada com sucesso'}), 201
 

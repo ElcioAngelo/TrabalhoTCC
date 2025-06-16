@@ -1,4 +1,5 @@
-echo "Começando testes.."
+echo "Começando testes.." \n
+source virtualenv/bin/activate 
 pytest
 
 if [ $? -eq 0 ]; then
