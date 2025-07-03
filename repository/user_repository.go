@@ -18,13 +18,13 @@ func NewUserRepository(connection *sql.DB) UserRepository {
 	}
 }
 
-func (ur *UserRepository) EncryptValue(value string) string {
+func (ur *UserRepository) EncryptValue(value string) (string, error) {
 	EncryptedValue, err := bcrypt.GenerateFromPassword([]byte(value),
 		bcrypt.DefaultCost)
 	if err != nil {
-		panic(err)
+		fmt.Printf("Error: %v", err)
 	}
-	return string(EncryptedValue)
+	return string(EncryptedValue), err
 }
 
 func (ur *UserRepository) GetUserByID(user_id int) (model.User, error) {
@@ -56,7 +56,7 @@ func (ur *UserRepository) GetUserByID(user_id int) (model.User, error) {
 	)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			panic(err.Error())
+			fmt.Printf("Error: %v", err)
 		}
 		return user, err
 	}
@@ -67,7 +67,6 @@ func (ur *UserRepository) GetUserByID(user_id int) (model.User, error) {
 type ReturnUser struct {
 	ID              int    `json:"id"`
 	Name            string `json:"name"`
-	Password        string `json:"password"`
 	Email           string `json:"email"`
 	CellphoneNumber string `json:"cellphone_number"`
 	State           string `json:"state"`
@@ -76,6 +75,7 @@ type ReturnUser struct {
 	Address         string `json:"address"`
 	AddressNumber   int    `json:"address_number"`
 	UserRole        string `json:"user_role"`
+	UserStatus      string `json:"user_status"`
 }
 
 func (ur *UserRepository) GetUsers() ([]ReturnUser, error) {
@@ -90,15 +90,15 @@ func (ur *UserRepository) GetUsers() ([]ReturnUser, error) {
 			   uai.address,
 			   uai.address_number,
 			   ui.user_role,
-			   u.password 
+			   ui.status
 		from users u
 		join user_information ui on ui.user_id = u.id
-		inner join user_address_information uai on uai.user_id = u.id
+		inner join user_address_information uai on uai.user_id = u.id;
 		`
 
 	rows, err := ur.connection.Query(query)
 	if err != nil {
-		panic(err.Error())
+		fmt.Printf("Error: %v", err)
 	}
 	defer rows.Close()
 
@@ -118,10 +118,10 @@ func (ur *UserRepository) GetUsers() ([]ReturnUser, error) {
 			&UserObj.Address,
 			&UserObj.AddressNumber,
 			&UserObj.UserRole,
-			&UserObj.Password,
+			&UserObj.UserStatus,
 		)
 		if err != nil {
-			panic(err.Error())
+			fmt.Printf("Error: %v", err)
 		}
 		userList = append(userList, UserObj)
 		// Log the values to see what's being returned from the query
@@ -231,7 +231,7 @@ func (ur *UserRepository) CreateUser(user model.User) error {
 	EncryptedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password),
 		bcrypt.DefaultCost)
 	if err != nil {
-		panic(err.Error())
+		fmt.Printf("Error: %v", err)
 	}
 
 	_, err = ur.connection.Exec(query, user.Name, user.Email, EncryptedPassword, user.CellphoneNumber,
@@ -242,61 +242,55 @@ func (ur *UserRepository) CreateUser(user model.User) error {
 	return err
 }
 
-func (ur *UserRepository) UpdateUser(input map[string]interface{}, userID int) error {
-	// Define allowed columns
-	allowedColumns := map[string]bool{
-		"name":             true,
-		"email":            true,
-		"password":         true,
-		"cellphone_number": true,
-		"address":          true,
-		"address_number":   true,
-	}
+func (ur *UserRepository) UpdateUser(user model.User) error {
+	query :=
+		`
+		WITH updated_user AS (
+		UPDATE users
+		SET name = $1,
+			email = $2,
+			password = $3,
+			cellphone_number = $4
+		WHERE id = $5
+		returning id
+		),
+		updated_address AS (
+		UPDATE user_address_information
+		SET state = $6,
+			postal_code = $7,
+			city = $8,
+			address = $9,
+			address_number = $10
+		WHERE user_id = (SELECT id FROM updated_user)
+		returning *
+		)
+		select 'update succesfull!';
+	`
 
-	query := "UPDATE users SET "
-	args := []interface{}{}
-	i := 1
+	// // ? Função para gerar o hash criptografado da senha
+	// EncryptedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password),
+	// 	bcrypt.DefaultCost)
+	// if err != nil {
+	// 	panic(err.Error())
+	// }
 
-	for k, v := range input {
-		// Only allow specific fields
-		if !allowedColumns[k] {
-			continue
-		}
-
-		// Validate non-empty values for critical fields
-		if strVal, ok := v.(string); ok && strVal == "" && k != "password" {
-			return fmt.Errorf("field %s cannot be empty", k)
-		}
-
-		// If updating password, hash it
-		if k == "password" {
-			hashed, err := bcrypt.GenerateFromPassword([]byte(v.(string)), bcrypt.DefaultCost)
-			if err != nil {
-				panic(err.Error())
-			}
-			v = string(hashed)
-		}
-
-		query += fmt.Sprintf("%s = $%d,", k, i)
-		args = append(args, v)
-		i++
-	}
-
-	if len(args) == 0 {
-		return fmt.Errorf("no valid fields to update")
-	}
-
-	// Remove trailing comma and add WHERE clause
-	query = query[:len(query)-1]
-	query += fmt.Sprintf(" WHERE id = $%d", i)
-	args = append(args, userID)
-
-	_, err := ur.connection.Exec(query, args...)
+	_, err := ur.connection.Exec(
+		query,
+		user.Name,
+		user.Email,
+		user.CellphoneNumber,
+		user.ID,
+		user.State,
+		user.PostalCode,
+		user.City,
+		user.Address,
+		user.AddressNumber,
+	)
 	if err != nil {
-		panic(err.Error())
+		return fmt.Errorf("error while creating user: %w", err)
 	}
 
-	return nil
+	return err
 }
 
 func (ur *UserRepository) setUserProducts(user_id int, order_id int, product_id int, quantity int) error {
@@ -309,7 +303,7 @@ func (ur *UserRepository) setUserProducts(user_id int, order_id int, product_id 
 
 	_, err := ur.connection.Exec(query, user_id, quantity, product_id, order_id)
 	if err != nil {
-		panic(err.Error())
+		fmt.Printf("Error: %v", err)
 	}
 
 	return err
@@ -325,7 +319,7 @@ func (ur *UserRepository) RemoveUser(user_id int) error {
 
 	_, err := ur.connection.Exec(query, user_id)
 	if err != nil {
-		panic(err.Error())
+		fmt.Printf("Error: %v", err)
 	}
 
 	return err

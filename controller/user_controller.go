@@ -85,8 +85,7 @@ func (u *userController) UserVerification(ctx *gin.Context) {
 	user, err := u.repository.UserVerification(userInfo.Email, userInfo.Password)
 	if err != nil {
 		ctx.JSON(404, gin.H{
-			"message": "user not found",
-			"error":   err.Error(),
+			"error": "user not found",
 		})
 		return
 	}
@@ -119,7 +118,7 @@ func (u *userController) CreateUser(ctx *gin.Context) {
 	// * Recebe o Body do JSON (nome,email..etc)
 	err := ctx.ShouldBind(&user)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
+		ctx.JSON(http.StatusNotAcceptable, gin.H{
 			"error": err.Error(),
 		})
 		return
@@ -128,15 +127,13 @@ func (u *userController) CreateUser(ctx *gin.Context) {
 	if Usererr != nil {
 		if pqError, ok := Usererr.(*pq.Error); ok {
 			if pqError.Code == "23505" {
-				ctx.JSON(409,gin.H{"Conflito": "Usuário já existente"})
+				ctx.JSON(409, gin.H{"Conflito": "Usuário já existente"})
 				return
 			}
 		}
-		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"error": "internal server error",
-		})
-			return
-	}else{
+		ctx.JSON(500, gin.H{"Error:": err})
+
+	} else {
 		ctx.JSON(http.StatusOK, gin.H{
 			"message":   "User created successfully!",
 			"user_name": user.Name,
@@ -144,13 +141,7 @@ func (u *userController) CreateUser(ctx *gin.Context) {
 	}
 }
 
-
-
 func (u *userController) RemoveUser(ctx *gin.Context) {
-	type status struct {
-		Value string `json:"value"`
-	}
-
 	// TODO: user remover.
 
 }
@@ -186,25 +177,27 @@ func (u *userController) AuthMeHandler(c *gin.Context) {
 		"user_role": userRole,
 	})
 }
-func (u *userController) UpdateUser(c *gin.Context) {
-	userID := c.GetInt("user_id")
 
-	var input map[string]interface{}
-	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON input", "details": err.Error()})
-		return
-	}
+func (u *userController) UpdateUser(ctx *gin.Context) {
+	userID := ctx.GetInt("id")
+	var user model.User
 
-	if len(input) == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "No data provided to update"})
-		return
-	}
+	user.ID = userID
 
-	err := u.repository.UpdateUser(input, userID)
+	// * Recebe o Body do JSON (nome,email..etc)
+	err := ctx.ShouldBind(&user)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user", "details": err.Error()})
+		ctx.JSON(http.StatusNotAcceptable, gin.H{
+			"error": err.Error(),
+		})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"status": "User updated successfully"})
+	err = u.repository.UpdateUser(user)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user", "details": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"status": "User updated successfully"})
 }

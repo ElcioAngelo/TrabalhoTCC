@@ -1,4 +1,4 @@
-echo "Começando testes.." \n
+cd python
 source virtualenv/bin/activate 
 pytest
 

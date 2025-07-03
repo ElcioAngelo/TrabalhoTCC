@@ -21,11 +21,11 @@ func ConnectDB() (*sql.DB, error) {
 		host, port, user, password, dbname)
 	db, err := sql.Open("postgres", psqlInfo)
 	if err != nil {
-		panic(err)
+		fmt.Printf("Error: %v", err)
 	}
 	err = db.Ping()
 	if err != nil {
-		panic(err)
+		fmt.Printf("Error: %v", err)
 	}
 
 	fmt.Println("Connected to " + dbname)

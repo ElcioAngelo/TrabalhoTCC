@@ -98,5 +98,11 @@ def upload_image() -> Response:
     
     return jsonify({'message': 'Imagem enviada com sucesso'}), 201
 
+
+## * Rota necessária para o script perl funcionar.
+@app.route('/check', methods=['GET'])
+def status_checking():
+    return jsonify({'status': 'ok'}), 200
+
 if __name__ == '__main__':
     app.run(debug=True)

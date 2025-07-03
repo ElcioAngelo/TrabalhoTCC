@@ -13,54 +13,50 @@ import (
 
 var mySigningKey = []byte(os.Getenv("SECRET_KEY")) // ** Chave assinadora das JWT
 
-
 // ** Middleware para a validação das JWT
 func TokenAuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-	
+
 		tokenString, err := c.Cookie("jwtToken")
 		if err != nil {
-			c.JSON(http.StatusUnauthorized,gin.H{
-				"message": "authorization token is missing",
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"error": "authorization token is missing",
 			})
 			c.Abort()
 		}
 
 		token, err := jwt.ParseWithClaims(tokenString, &model.Claims{}, func(token *jwt.Token) (interface{}, error) {
-            return mySigningKey, nil
-        })
-		if err != nil || !token.Valid {
-            c.JSON(http.StatusUnauthorized, gin.H{"message": "Invalid or expired token"})
-            c.Abort()
-            return
-        }
+			return mySigningKey, nil
+		})
+		if !token.Valid {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+			c.Abort()
+			return
+		}
 
 		claims, ok := token.Claims.(*model.Claims)
-        if !ok {
-            c.JSON(http.StatusUnauthorized, gin.H{"message": "Invalid token claims"})
-            c.Abort()
-            return
-        }
+		if !ok {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token claims"})
+			c.Abort()
+			return
+		}
 		c.Set("email", claims.Email)
-		c.Set("user_role",claims.UserRole)
+		c.Set("user_role", claims.UserRole)
 		c.Set("user_id", claims.UserID)
 
 		c.Next()
 	}
 }
 
-
-
-
 // ** Rota de geração da JWT token
-func GenerateToken(id int,email string, user_role string) (string, error){
+func GenerateToken(id int, email string, user_role string) (string, error) {
 
 	// ? Criando as "claims"
 	claims := model.Claims{
-		UserID: id,
-		Email: email,
+		UserID:   id,
+		Email:    email,
 		UserRole: user_role,
-			RegisteredClaims: jwt.RegisteredClaims{
+		RegisteredClaims: jwt.RegisteredClaims{
 			Issuer:    "server",
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 24 * 100)),
 		},
@@ -75,7 +71,6 @@ func GenerateToken(id int,email string, user_role string) (string, error){
 	// ? Retorna a token assinada
 	return signedToken, err
 }
-
 
 // ** Rota protegida que requer uma JWT Token válida.
 func ProtectedEndpoint(c *gin.Context) {

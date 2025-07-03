@@ -1,0 +1,4 @@
+error: Script not found "start"
+Servidor react incializado com o PID: 31132
+Servidor react incializado com o PID: 31748
+Servidor react incializado com o PID: 33807

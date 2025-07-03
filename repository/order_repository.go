@@ -11,7 +11,6 @@ type OrderRepository struct {
 	connection *sql.DB
 }
 
-
 func NewOrderRepository(connection *sql.DB) OrderRepository {
 	return OrderRepository{
 		connection: connection,
@@ -28,7 +27,7 @@ func (or *OrderRepository) SetUserOrder(user_id int, products []int) error {
 	`
 	err := or.connection.QueryRow(query, user_id).Scan(&OrderID)
 	if err != nil {
-		panic(err.Error())
+		return fmt.Errorf("Error: %v", err)
 	}
 
 	productCount := make(map[int]int)
@@ -42,18 +41,16 @@ func (or *OrderRepository) SetUserOrder(user_id int, products []int) error {
 		productIDs = append(productIDs, productID)
 		quantities = append(quantities, quantity)
 	}
-	
 
 	fmt.Println("Order ID:", OrderID)
 	fmt.Println("Product IDs:", productIDs)
 	fmt.Println("Quantities:", quantities)
 
-
 	// Call bulk function
 	_, err = or.connection.Exec(`SELECT add_products_bulk($1, $2, $3)`,
 		OrderID, pq.Array(productIDs), pq.Array(quantities))
 	if err != nil {
-		panic(err.Error())
+		return fmt.Errorf("Error: %v", err)
 	}
 
 	return nil
@@ -96,14 +93,14 @@ func (or *OrderRepository) ReturnOrder(user_id int) ([]map[string]interface{}, e
 
 		// Store the row in a map
 		order := map[string]interface{}{
-			"order_id":    orderID,
-			"order_date":  orderDate,
-			"status":      status,
-			"user_id":     userID,
+			"order_id":     orderID,
+			"order_date":   orderDate,
+			"status":       status,
+			"user_id":      userID,
 			"product_name": productName,
-			"quantity":    quantity,
-			"price":       price,
-			"preco_total": precoTotal,
+			"quantity":     quantity,
+			"price":        price,
+			"preco_total":  precoTotal,
 		}
 
 		// Append the map to the results slice
@@ -120,8 +117,8 @@ func (or *OrderRepository) ReturnOrder(user_id int) ([]map[string]interface{}, e
 }
 
 func (or *OrderRepository) ReturnAllOrders() ([]map[string]interface{}, error) {
-	query := 
-	`
+	query :=
+		`
 		SELECT u."name", COUNT(*), SUM(p.price * op.quantity) AS total_price, o.status
 FROM orders o
 inner join order_products op on o.id = op.order_id
@@ -155,10 +152,10 @@ ORDER BY user_id, o.status, u."name"
 
 		// Store the row in a map
 		order := map[string]interface{}{
-			"user_name":     user_name,
+			"user_name":   user_name,
 			"quantity":    quantity,
 			"preco_total": precoTotal,
-			"status": status,
+			"status":      status,
 		}
 
 		// Append the map to the results slice
@@ -174,9 +171,8 @@ ORDER BY user_id, o.status, u."name"
 	return results, nil
 }
 
-
 // func (or *OrderRepository) AlterOrder(status string, order_id int) (error) {
-// 	query := 
+// 	query :=
 // 	`
 // 		update orders
 // 		set status = $1
@@ -189,5 +185,3 @@ ORDER BY user_id, o.status, u."name"
 
 // 	return err;
 // }
-
-

@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"trabalhoTcc.com/mod/controller"
@@ -13,13 +15,13 @@ func main() {
 	server := gin.Default()
 	dbConnection, err := database.ConnectDB()
 	if err != nil {
-		panic(err)
+		fmt.Printf("Error: %v", err)
 	}
 
 	// ** Configuração CORS para ambos os servidores conseguirem se comunicar
 	server.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"http://localhost:3000"},
-		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
+		AllowMethods:     []string{"GET", "POST", "PATCH", "DELETE"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		AllowCredentials: true,
 	}))
@@ -43,7 +45,7 @@ func main() {
 
 	// * Requisições GET
 
-	server.GET("/current_user", UserController.AuthMeHandler)
+	protected.GET("/current_user", UserController.AuthMeHandler)
 	protected.GET("/fetch/user/:user_id", UserController.GetUser)
 	server.GET("/fetch/products", ProductController.GetProducts)
 	protected.GET("/fetch/products/all", ProductController.GetProductsAdmin)
@@ -59,13 +61,12 @@ func main() {
 	server.POST("/create/user", UserController.CreateUser)
 	server.POST("/user/login", UserController.UserVerification)
 	protected.POST("/make_user/order", OrderController.SetUserOrder)
-
-	protected.PATCH("/edit/user", UserController.UpdateUser)
+	protected.POST("/edit/user", UserController.UpdateUser)
 
 	// * Verificação do funcionamento do servidor
-	server.GET("/ping", func(ctx *gin.Context) {
+	server.GET("/check", func(ctx *gin.Context) {
 		ctx.JSON(200, gin.H{
-			"message": "pong",
+			"message": "everything's ok",
 		})
 	})
 
