@@ -44,7 +44,7 @@ def index():
 def return_images():
     files = []
     for filename in os.listdir(IMAGE_FOLDER):
-        if filename.lower().endswith(['.png', '.jpg', '.jpeg', '.gif', '.webp']):
+        if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.webp')):
             files.append(filename)
     return jsonify(files)
 
